@@ -56,7 +56,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     docs_enabled = settings.app_env != "production" and settings.allow_docs
     app = FastAPI(
-        title="Bookmark Manager V1",
+        title="签栖",
         version="0.1.0",
         docs_url="/docs" if docs_enabled else None,
         redoc_url="/redoc" if docs_enabled else None,

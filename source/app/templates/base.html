@@ -6,8 +6,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{% if page_title %}{{ page_title }} · {% endif %}Bookmark{% endblock %}</title>
-  <link rel="icon" href="/static/icons/favicon.svg" type="image/svg+xml">
+  <title>{% block title %}{% if page_title %}{{ page_title }} · {% endif %}签栖{% endblock %}</title>
+  <link rel="icon" href="/static/icons/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="/static/css/app.css">
   {% block head_extra %}{% endblock %}
@@ -16,7 +16,10 @@
   <a class="skip-link" href="#main-content">跳到主要内容</a>
   <header class="app-header">
     <div class="container-fluid app-header-inner">
-      <a class="brand" href="/" aria-label="Bookmark 首页">Bookmark</a>
+      <a class="brand" href="/" aria-label="签栖首页">
+        <img class="brand-logo" src="/static/icons/logo.svg" alt="" width="24" height="24">
+        <span>签栖</span>
+      </a>
       <nav class="main-nav" aria-label="主导航">
         <ul class="nav-list">
           {% for key, href, label in nav_items %}

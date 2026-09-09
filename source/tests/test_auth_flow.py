@@ -47,7 +47,8 @@ class TestLoginFlow:
     def test_login_page_renders(self, client):
         response = get_login_page(client)
         assert response.status_code == 200
-        assert "登录 Bookmark" in response.text
+        assert "登录签栖" in response.text
+        assert "个人搜索与书签首页" in response.text
         assert 'name="csrf_token"' in response.text
 
     def test_login_page_refreshes_invalid_csrf_cookie(self, client, make_admin):

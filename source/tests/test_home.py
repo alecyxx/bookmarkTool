@@ -42,7 +42,16 @@ def test_static_assets_served(client):
     assert client.get("/static/vendor/bootstrap/bootstrap.min.css").status_code == 200
     assert client.get("/static/vendor/bootstrap/bootstrap.bundle.min.js").status_code == 200
     assert client.get("/static/vendor/htmx/htmx.min.js").status_code == 200
-    assert client.get("/static/icons/favicon.svg").status_code == 200
+    assert client.get("/static/icons/logo.svg").status_code == 200
+
+
+def test_brand_uses_logo(client):
+    text = client.get("/login").text
+    assert "<title>登录 · 签栖</title>" in text
+    assert 'rel="icon" href="/static/icons/logo.svg"' in text
+    assert 'class="brand-logo" src="/static/icons/logo.svg" alt=""' in text
+    assert 'aria-label="签栖首页"' in text
+    assert "<span>签栖</span>" in text
 
 
 def test_noscript_fallback_present(client):

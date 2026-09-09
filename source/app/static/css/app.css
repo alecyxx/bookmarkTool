@@ -87,11 +87,22 @@ body {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
   font-weight: 700;
   font-size: 16px;
   color: var(--bm-text-primary);
   text-decoration: none;
   letter-spacing: -0.01em;
+}
+
+.brand-logo {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
 }
 
 .brand:hover {
@@ -239,7 +250,13 @@ body {
 .auth-title {
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.auth-subtitle {
+  margin: 0 0 20px;
+  color: var(--bm-text-secondary);
   text-align: center;
 }
 

@@ -142,7 +142,7 @@ class TestButtonsAndLinks:
 
 class TestFaviconPrivacy:
     def test_no_remote_images_when_disabled(self, auth_client, db_session):
-        """默认（远程 favicon 关闭）：书签列表不输出任何 <img>（本地图标占位）。"""
+        """默认（远程 favicon 关闭）：不输出第三方图片，本地品牌图标不受影响。"""
         from app.models.bookmark import Bookmark
 
         db_session.add(
@@ -155,12 +155,13 @@ class TestFaviconPrivacy:
         )
         db_session.commit()
         html = _page(auth_client, "bookmarks")
-        assert "<img" not in html.split("</main>")[0]
+        assert 'src="https://example.com/favicon.ico"' not in html
+        assert 'src="/static/icons/logo.svg"' in html
         assert "default-icon" in html  # 本地占位图标
 
     def test_favicon_icons_only_static_local(self, auth_client):
         html = _page(auth_client, "bookmarks")
-        assert 'rel="icon"' not in html or "/static/icons/favicon.svg" in html
+        assert 'rel="icon" href="/static/icons/logo.svg"' in html
 
 
 class TestErrorSemantics:
