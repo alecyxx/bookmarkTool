@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="bookmarks-page" aria-labelledby="trash-title">
+  <div class="bookmarks-toolbar">
+    <div class="search-box">
+      <h1 id="trash-title" class="page-title trash-title">回收站</h1>
+      <form method="get" action="/trash" role="search" class="search-form">
+        <label class="visually-hidden" for="trash-search">搜索回收站</label>
+        <input type="search" id="trash-search" name="q" class="form-control"
+               value="{{ q or '' }}" placeholder="搜索已删除的书签……" maxlength="200">
+      </form>
+    </div>
+  </div>
+  <div id="trash-list-container" aria-live="polite">
+    {% include "partials/trash_list.html" %}
+  </div>
+</section>
+<div id="bulk-modal-root"></div>
+
+<div class="bulk-bar" id="bulk-bar" hidden>
+  <span class="bulk-count" id="bulk-count">已选择 0 项</span>
+  <button type="button" class="btn btn-outline btn-sm" data-bulk-action="restore">恢复</button>
+  <button type="button" class="btn btn-outline btn-sm" data-bulk-action="permanent">永久删除</button>
+  <button type="button" class="btn btn-outline btn-sm" data-bulk-action="empty">清空回收站</button>
+  <button type="button" class="icon-btn bulk-close" data-bulk-clear aria-label="清除选择">×</button>
+</div>
+{% endblock %}
+{% block scripts_extra %}
+<script src="/static/js/manage-shared.js"></script>
+<script src="/static/js/bulk-ui.js"></script>
+{% endblock %}

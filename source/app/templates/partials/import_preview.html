@@ -1,0 +1,112 @@
+{# 导入预览卡片：PREVIEWED/FAILED/SUCCEEDED/EXPIRED 共用。 #}
+{% if job.status in ("PREVIEWED", "RUNNING") %}
+<div class="manage-card import-preview" id="job-{{ job.id }}" data-job-id="{{ job.id }}"
+     data-status="{{ job.status }}">
+  <div class="preview-header">
+    <h2 class="card-title">预览：{{ job.original_filename }}</h2>
+    <span class="job-badge">{{ job.source_type }}</span>
+  </div>
+  {% if summary.errors_total %}
+  <div class="form-error" role="alert">
+    <strong>发现 {{ summary.errors_total }} 处格式错误，默认不允许执行。</strong>
+    <ul class="preview-list">
+      {% for error in summary.errors_preview %}<li>{{ error }}</li>{% endfor %}
+      {% if summary.errors_total > summary.errors_preview|length %}<li>……（共 {{ summary.errors_total }} 条）</li>{% endif %}
+    </ul>
+  </div>
+  {% endif %}
+  {% if summary.warnings_preview %}
+  <div class="preview-note" role="note">
+    <strong>提示（{{ summary.warnings_total }} 条）</strong>
+    <ul class="preview-list">
+      {% for warning in summary.warnings_preview %}<li>{{ warning }}</li>{% endfor %}
+      {% if summary.warnings_total > summary.warnings_preview|length %}<li>……（共 {{ summary.warnings_total }} 条）</li>{% endif %}
+    </ul>
+  </div>
+  {% endif %}
+  <dl class="preview-stats">
+    <div class="stat"><dt>有效书签</dt><dd>{{ summary.valid_items }}</dd></div>
+    <div class="stat"><dt>与库内重复</dt><dd>{{ summary.analysis.library_duplicates }}</dd></div>
+    <div class="stat"><dt>文件内重复</dt><dd>{{ summary.analysis.file_duplicates }}</dd></div>
+    <div class="stat"><dt>与回收站冲突</dt><dd>{{ summary.analysis.trash_conflicts }}</dd></div>
+    {% if summary.empty_folders %}<div class="stat"><dt>空目录</dt><dd>{{ summary.empty_folders }}</dd></div>{% endif %}
+  </dl>
+  {% if summary.empty_folders_preview %}
+  <details class="preview-details">
+    <summary>空目录（不包含书签，默认不会创建）</summary>
+    <ul class="preview-list">
+      {% for path in summary.empty_folders_preview %}<li>{{ path }}</li>{% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+  <form class="import-options">
+    <fieldset>
+      <legend>重复策略（比较键：规范化网址）</legend>
+      <label class="radio-row">
+        <input type="radio" name="duplicate_policy" value="skip"
+               {% if options.duplicate_policy == 'skip' %}checked{% endif %}>
+        跳过重复（推荐）
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="duplicate_policy" value="overwrite"
+               {% if options.duplicate_policy == 'overwrite' %}checked{% endif %}>
+        覆盖已有书签
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="duplicate_policy" value="keep"
+               {% if options.duplicate_policy == 'keep' %}checked{% endif %}>
+        保留并新建
+      </label>
+    </fieldset>
+    <fieldset>
+      <legend>文件夹处理</legend>
+      <label class="radio-row">
+        <input type="radio" name="folder_policy" value="category"
+               {% if options.folder_policy == 'category' %}checked{% endif %}>转成分类树
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="folder_policy" value="tags"
+               {% if options.folder_policy == 'tags' %}checked{% endif %}>转成标签
+      </label>
+      <label class="radio-row">
+        <input type="radio" name="folder_policy" value="ignore"
+               {% if options.folder_policy == 'ignore' %}checked{% endif %}>忽略文件夹
+      </label>
+    </fieldset>
+  </form>
+  <div class="preview-actions">
+    <button type="button" class="btn btn-primary" data-import-execute
+            {% if summary.errors_total %}disabled title="存在格式错误，请修复后重新上传"{% endif %}>确认导入</button>
+    <button type="button" class="btn btn-outline" data-import-cancel>取消</button>
+    <span class="import-status" id="import-status"></span>
+  </div>
+</div>
+{% elif job.status == "SUCCEEDED" %}
+<div class="manage-card import-preview" data-job-id="{{ job.id }}">
+  <h2 class="card-title">导入完成：{{ job.original_filename }}</h2>
+  {% set execution = summary.execution or {} %}
+  <dl class="preview-stats">
+    <div class="stat"><dt>新建</dt><dd>{{ execution.created or 0 }}</dd></div>
+    <div class="stat"><dt>覆盖</dt><dd>{{ execution.overwritten or 0 }}</dd></div>
+    <div class="stat"><dt>跳过</dt><dd>{{ execution.skipped or 0 }}</dd></div>
+    {% if execution.categories_created %}<div class="stat"><dt>新建分类</dt><dd>{{ execution.categories_created }}</dd></div>{% endif %}
+  </dl>
+  <div class="preview-actions">
+    <a class="btn btn-primary" href="/bookmarks">查看书签</a>
+    <a class="btn btn-outline" href="/bookmarks?sort=created_desc">查看最新导入</a>
+  </div>
+</div>
+{% elif job.status == "FAILED" %}
+<div class="manage-card import-preview" data-job-id="{{ job.id }}">
+  <h2 class="card-title">导入失败：{{ job.original_filename }}</h2>
+  <div class="form-error" role="alert">{{ job.error_summary or '执行失败，请重新上传。' }}</div>
+  <div class="preview-actions">
+    <button type="button" class="btn btn-outline" data-import-dismiss>关闭</button>
+  </div>
+</div>
+{% else %}
+<div class="manage-card import-preview" data-job-id="{{ job.id }}">
+  <h2 class="card-title">任务已{{ '取消' if job.status == 'EXPIRED' else '过期' }}</h2>
+  <p class="text-secondary">临时文件已清理；请重新上传导入。</p>
+</div>
+{% endif %}

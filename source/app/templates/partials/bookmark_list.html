@@ -1,0 +1,30 @@
+{# 书签列表 fragment（整页与 HTMX 共用）。#}
+{% if result.items %}
+<div class="bookmark-list">
+  <div class="list-select-row">
+    <label class="select-all-label">
+      <input type="checkbox" class="bm-select-all" aria-label="选择当前页全部">
+      <span class="text-secondary">选择当前页全部</span>
+    </label>
+  </div>
+  {% for bookmark in result.items %}
+  {% include "partials/bookmark_item.html" %}
+  {% endfor %}
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+<div class="empty-state">
+  <p class="empty-title">{% if state.q or state.category or state.tag or state.favorite %}没有符合条件的书签{% else %}还没有书签{% endif %}</p>
+  <p class="text-secondary">
+    {% if state.q or state.category or state.tag or state.favorite %}
+    试试更换关键词或清除筛选条件。
+    {% else %}
+    添加第一个书签，或者导入现有浏览器收藏夹。
+    {% endif %}
+  </p>
+  <div class="empty-actions">
+    <button class="btn btn-primary" type="button" data-bm-new>+ 新增书签</button>
+    <a class="btn btn-outline" href="/import-export">导入书签</a>
+  </div>
+</div>
+{% endif %}

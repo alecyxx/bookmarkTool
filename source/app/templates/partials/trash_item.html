@@ -1,0 +1,27 @@
+{# 回收站单条（含重复提示与行内操作）。 #}
+<article class="bookmark-item trash-item" id="trash-item-{{ bookmark.id }}" data-bookmark-id="{{ bookmark.id }}">
+  <label class="bm-check" aria-label="选择 {{ bookmark.title }}">
+    <input type="checkbox" class="bm-select" value="{{ bookmark.id }}">
+  </label>
+  <div class="bm-favicon" aria-hidden="true"><span class="default-icon">⌂</span></div>
+  <div class="bm-body">
+    <div class="bm-title-row">
+      <span class="bm-title trash-title-text">{{ bookmark.title }}</span>
+      <button type="button" class="btn-link" data-trash-restore data-id="{{ bookmark.id }}"
+              data-version="{{ bookmark.version }}">恢复</button>
+      <button type="button" class="btn-link danger" data-trash-permanent data-id="{{ bookmark.id }}"
+              data-version="{{ bookmark.version }}">永久删除</button>
+    </div>
+    <p class="bm-url text-secondary">{{ bookmark.url }}</p>
+    {% if duplicates.get(bookmark.id, 0) > 0 %}
+    <p class="duplicate-hint" role="note">恢复后将与 {{ duplicates[bookmark.id] }} 条正常书签使用相同网址（允许重复，仅提示）。</p>
+    {% endif %}
+    {% if bookmark.tags %}
+    <ul class="bm-tags" aria-label="标签">
+      {% for tag in bookmark.tags %}
+      <li><span class="tag-pill">{{ tag.name }}</span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</article>

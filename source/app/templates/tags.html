@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block head_extra %}<link rel="stylesheet" href="/static/css/admin.css">{% endblock %}
+{% block content %}
+<section class="manage-page" aria-labelledby="tags-title">
+  <div class="manage-header">
+    <h1 id="tags-title" class="page-title">标签</h1>
+  </div>
+  <div id="tag-app">
+    {% include "partials/tag_list.html" %}
+  </div>
+</section>
+<div id="tag-modal-root"></div>
+{% endblock %}
+{% block scripts_extra %}
+<script src="/static/js/manage-shared.js"></script>
+<script src="/static/js/tags-ui.js"></script>
+{% endblock %}

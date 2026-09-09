@@ -1,0 +1,33 @@
+{# 标签新增/编辑 Modal。#}
+<div class="modal fade" id="tag-modal" tabindex="-1" aria-labelledby="tag-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="tag-form" data-mode="{{ 'edit' if tag else 'new' }}"
+            {% if tag %}data-id="{{ tag.id }}"{% endif %}>
+        <div class="modal-header">
+          <h2 class="modal-title" id="tag-modal-title">
+            {{ '编辑标签' if tag else '新建标签' }}
+          </h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-notice" role="alert" aria-live="assertive"></div>
+          {% if tag %}<input type="hidden" name="version" value="{{ tag.version }}">{% endif %}
+          <div class="form-group">
+            <label for="tag-name">名称 <span class="req">*</span></label>
+            <input class="form-control" type="text" id="tag-name" name="name" required
+                   maxlength="50" value="{{ tag.name if tag else '' }}" autofocus>
+            <div class="form-field-error" data-field-error="name"></div>
+          </div>
+          {% if tag %}
+          <p class="text-secondary auth-hint">改名冲突不会自动合并标签。</p>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-bs-dismiss="modal">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

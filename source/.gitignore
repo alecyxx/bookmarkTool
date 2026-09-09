@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# 本地开发数据（禁止进入版本库）
+dev_data/
+data/
+tmp/
+backups/
+*.db
+*.db-wal
+*.db-shm
+
+# 环境与密钥
+.env
+.env.local
+
+# IDE / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

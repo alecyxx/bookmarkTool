@@ -1,0 +1,51 @@
+{# 分类管理页树容器（整页与 fragment 共用；操作后整树刷新）。 #}
+{% macro admin_branch(node, counts) -%}
+<li class="cat-admin-item" data-id="{{ node.category.id }}">
+  <div class="cat-admin-row">
+    <span class="cat-admin-name" title="{{ ' / '.join(node.path) }}">{{ node.category.name }}</span>
+    <span class="cat-count" title="直接书签 / 含后代书签">{{ counts.get(node.category.id, 0) }}</span>
+    <span class="cat-admin-actions">
+      <button type="button" class="btn-link" data-cat-new data-parent="{{ node.category.id }}">+ 子分类</button>
+      <button type="button" class="btn-link" data-cat-edit data-id="{{ node.category.id }}">编辑</button>
+      <button type="button" class="btn-link" data-cat-move data-id="{{ node.category.id }}" data-up="1" aria-label="上移">↑</button>
+      <button type="button" class="btn-link" data-cat-move data-id="{{ node.category.id }}" data-up="0" aria-label="下移">↓</button>
+      <button type="button" class="btn-link danger" data-cat-delete data-id="{{ node.category.id }}">删除</button>
+    </span>
+  </div>
+  {% if node.children %}
+  <div class="sib-order" data-parent="{{ node.category.id }}" data-revision="{{ tree_revision }}"
+       data-ids='{{ node.children | map(attribute="category.id") | list | tojson }}'
+       data-versions='{{ node.children | map(attribute="category.version") | list | tojson }}'>
+    <ul class="cat-admin-children">
+      {% for child in node.children %}{{ admin_branch(child, counts) }}{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</li>
+{%- endmacro %}
+
+<div class="manage-card">
+  <div class="manage-card-actions">
+    <button type="button" class="btn btn-primary" data-cat-new data-parent="">+ 新建根分类</button>
+    <span class="text-secondary manage-hint">删除分类只会删除当前节点：书签可迁移，直接子分类提升为同级。</span>
+  </div>
+  <div id="category-tree-container">
+    {% if tree.broken %}
+    <div class="form-error" role="alert">检测到损坏的分类数据（{{ tree.broken | length }} 个节点），请联系管理员修复。</div>
+    {% endif %}
+    {% if tree.roots %}
+    <div class="sib-order" data-parent="" data-revision="{{ tree_revision }}"
+         data-ids='{{ tree.roots | map(attribute="category.id") | list | tojson }}'
+         data-versions='{{ tree.roots | map(attribute="category.version") | list | tojson }}'>
+      <ul class="cat-admin-children">
+        {% for node in tree.roots %}{{ admin_branch(node, counts) }}{% endfor %}
+      </ul>
+    </div>
+    {% else %}
+    <div class="empty-state compact">
+      <p class="empty-title">还没有分类</p>
+      <p class="text-secondary">创建分类后，可以为书签建立层级结构。</p>
+    </div>
+    {% endif %}
+  </div>
+</div>

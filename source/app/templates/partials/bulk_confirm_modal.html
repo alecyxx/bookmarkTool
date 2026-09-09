@@ -1,0 +1,26 @@
+{# 批量确认 Modal：软删/恢复按钮确认；永久删除/清空需输入确认词（二次确认不可绕过）。 #}
+<div class="modal fade" id="bulk-modal" tabindex="-1" aria-labelledby="bulk-title" aria-hidden="true"
+     data-action="{{ action }}" data-count="{{ count }}" data-word="{{ confirm_word or '' }}">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="bulk-title">{{ '请确认' if confirm_word else '确认操作' }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <p class="danger-note">{{ message }}</p>
+        {% if confirm_word %}
+        <div class="form-group">
+          <label for="bulk-confirm-input">请输入「{{ confirm_word }}」以确认：</label>
+          <input class="form-control" type="text" id="bulk-confirm-input" autocomplete="off">
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn {{ 'btn-danger' if action in ('permanent', 'empty', 'delete') else 'btn-primary' }}"
+                id="bulk-submit-btn">确认</button>
+      </div>
+    </div>
+  </div>
+</div>

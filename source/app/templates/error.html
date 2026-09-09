@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ status_code }} · Bookmark{% endblock %}
+{% block content %}
+<section class="error-page" aria-labelledby="error-title">
+  <p class="error-code">{{ status_code }}</p>
+  <h1 id="error-title" class="error-heading">{{ error.message }}</h1>
+  {% if error.code %}
+  <p class="text-secondary">错误码：{{ error.code }}</p>
+  {% endif %}
+  {% if error.request_id %}
+  <p class="text-secondary error-request-id">请求 ID：{{ error.request_id }}</p>
+  {% endif %}
+  <div class="error-actions">
+    <a class="btn btn-outline" href="/">返回首页</a>
+    <button class="btn btn-outline" type="button" onclick="history.back()">返回上一页</button>
+  </div>
+</section>
+{% endblock %}

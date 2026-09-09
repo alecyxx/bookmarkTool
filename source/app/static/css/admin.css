@@ -1,0 +1,372 @@
+/* Bookmark Manager V1 — 管理页样式补充（分类/标签）。 */
+.manage-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px 20px 40px;
+}
+
+.manage-card {
+  background: var(--bm-bg-content);
+  border: 1px solid var(--bm-border);
+  border-radius: var(--bm-radius-md);
+  padding: 16px;
+}
+
+.manage-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.manage-hint {
+  font-size: 12px;
+}
+
+.btn-link {
+  border: none;
+  background: transparent;
+  color: var(--bm-primary);
+  padding: 2px 6px;
+  font-size: 13px;
+  border-radius: var(--bm-radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-link:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.btn-link.danger {
+  color: var(--bm-danger);
+}
+
+.btn-link.danger:hover {
+  background: #fef2f2;
+}
+
+/* 分类树（管理页） */
+.cat-admin-children {
+  list-style: none;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.sib-order > .cat-admin-children {
+  padding-left: 0;
+}
+
+.cat-admin-item {
+  margin: 0;
+}
+
+.cat-admin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--bm-radius-sm);
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.cat-admin-row:hover {
+  background: #fafbfc;
+}
+
+.cat-admin-name {
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cat-admin-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.cat-count {
+  font-size: 12px;
+  color: var(--bm-text-secondary);
+  background: var(--bm-bg-page);
+  border-radius: 999px;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+/* 分类树（选择器/筛选，details 嵌套） */
+.cat-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cat-tree .cat-tree {
+  padding-left: 18px;
+}
+
+.cat-branch details > summary {
+  list-style: none;
+}
+
+.cat-branch details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cat-branch summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 16px;
+  color: var(--bm-text-secondary);
+  font-size: 11px;
+  transition: transform 0.1s;
+}
+
+.cat-branch details[open] > summary::before {
+  content: "▾";
+}
+
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--bm-radius-sm);
+}
+
+.cat-row:hover {
+  background: #fafbfc;
+}
+
+.cat-link {
+  color: var(--bm-text-primary);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.cat-link:hover {
+  color: var(--bm-primary);
+}
+
+.cat-link.cat-selected {
+  color: var(--bm-primary);
+  font-weight: 600;
+}
+
+.cat-children {
+  list-style: none;
+  margin: 0;
+  padding-left: 16px;
+}
+
+/* 标签管理表 */
+.manage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.manage-table th,
+.manage-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bm-border);
+}
+
+.manage-table thead th {
+  color: var(--bm-text-secondary);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.manage-table .col-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.manage-table tr:last-child td {
+  border-bottom: none;
+}
+
+.confirm-list {
+  margin: 10px 0 14px;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.danger-note {
+  color: var(--bm-danger);
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.empty-state.compact {
+  padding: 32px 16px;
+}
+
+/* 导入导出页 */
+.import-export-page {
+  max-width: 860px;
+}
+
+.card-title {
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+
+.import-hint {
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.import-form {
+  display: grid;
+  gap: 14px;
+}
+
+.import-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.import-spinner {
+  color: var(--bm-text-secondary);
+  font-size: 13px;
+}
+
+.import-preview {
+  margin-top: 16px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.job-badge {
+  font-size: 12px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--bm-primary);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.preview-list {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.8;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.preview-note {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--bm-radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  margin: 10px 0;
+}
+
+.preview-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.stat {
+  border: 1px solid var(--bm-border);
+  border-radius: var(--bm-radius-md);
+  padding: 8px 14px;
+  min-width: 92px;
+  text-align: center;
+}
+
+.stat dt {
+  font-size: 12px;
+  color: var(--bm-text-secondary);
+}
+
+.stat dd {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 2px 0 0;
+}
+
+.preview-details {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.preview-details > summary {
+  cursor: pointer;
+  color: var(--bm-text-secondary);
+}
+
+.import-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px 24px;
+  margin: 12px 0;
+}
+
+.import-options fieldset {
+  border: 1px solid var(--bm-border);
+  border-radius: var(--bm-radius-md);
+  padding: 10px 12px;
+  margin: 0;
+}
+
+.import-options legend {
+  font-size: 12px;
+  color: var(--bm-text-secondary);
+  padding: 0 6px;
+}
+
+.radio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.import-status {
+  font-size: 13px;
+  color: var(--bm-text-secondary);
+}
+
+.export-card {
+  margin-top: 16px;
+}
+
+.export-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

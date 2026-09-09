@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% from "partials/_tree_macros.html" import render_tree %}
+{% block content %}
+<section class="bookmarks-page" aria-labelledby="bookmarks-title">
+  <div class="bookmarks-toolbar">
+    <div class="search-box">
+      <label class="visually-hidden" for="bookmark-search">搜索书签</label>
+      <form method="get" action="/bookmarks" role="search" class="search-form">
+        <input type="search" id="bookmark-search" name="q" class="form-control" data-shortcut-search
+               value="{{ state.q or '' }}" placeholder="搜索标题、网址、标签、备注……"
+               maxlength="200" autocomplete="off">
+        {% if state.category %}<input type="hidden" name="category" value="{{ state.category }}">{% endif %}
+        {% if state.tag %}<input type="hidden" name="tag" value="{{ state.tag }}">{% endif %}
+        {% if state.favorite %}<input type="hidden" name="favorite" value="1">{% endif %}
+      </form>
+      <button class="btn btn-primary" type="button" data-bm-new data-shortcut-new>+ 新增</button>
+    </div>
+
+    <div class="filter-row" aria-label="筛选">
+      <div class="filter-chips">
+        <a class="chip{% if not state.category and not state.tag and not state.favorite %} active{% endif %}"
+           href="/bookmarks">全部</a>
+        <a class="chip{% if state.favorite and not state.category and not state.tag %} active{% endif %}"
+           href="{{ filter_url(favorite=True) }}">收藏</a>
+      </div>
+      {% if current_category_path %}
+      <nav class="breadcrumb-nav" aria-label="当前分类">
+        <span class="text-secondary">全部</span>
+        {% for part in current_category_path.split(' / ') %}
+        <span class="text-secondary">/</span><span>{{ part }}</span>
+        {% endfor %}
+        <a class="chip-clear" href="{{ filter_url(category=None) }}" aria-label="清除分类筛选">×</a>
+      </nav>
+      {% elif state.tag and tag_name %}
+      <nav class="breadcrumb-nav" aria-label="当前标签">
+        <a class="tag-pill active" href="/bookmarks?tag={{ state.tag }}"># {{ tag_name }}</a>
+        <a class="chip-clear" href="{{ filter_url(tag=None) }}" aria-label="清除标签筛选">×</a>
+      </nav>
+      {% endif %}
+      <form method="get" action="/bookmarks" class="filter-form-inline">
+        <label class="visually-hidden" for="sort-select">排序</label>
+        <select id="sort-select" name="sort" class="form-select form-select-sm">
+          <option value="created_desc"{% if state.sort == 'created_desc' %} selected{% endif %}>创建时间 ↓</option>
+          <option value="created_asc"{% if state.sort == 'created_asc' %} selected{% endif %}>创建时间 ↑</option>
+          <option value="updated_desc"{% if state.sort == 'updated_desc' %} selected{% endif %}>修改时间</option>
+          <option value="title_asc"{% if state.sort == 'title_asc' %} selected{% endif %}>标题 A-Z</option>
+          <option value="title_desc"{% if state.sort == 'title_desc' %} selected{% endif %}>标题 Z-A</option>
+          <option value="favorite_first"{% if state.sort == 'favorite_first' %} selected{% endif %}>收藏优先</option>
+        </select>
+        {% if state.category %}<input type="hidden" name="category" value="{{ state.category }}">{% endif %}
+        {% if state.tag %}<input type="hidden" name="tag" value="{{ state.tag }}">{% endif %}
+        {% if state.q %}<input type="hidden" name="q" value="{{ state.q }}">{% endif %}
+        {% if state.favorite %}<input type="hidden" name="favorite" value="1">{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="bookmarks-layout">
+    <aside class="category-sidebar" aria-label="按分类筛选书签">
+      <details class="category-sidebar-panel" open>
+        <summary class="category-sidebar-summary">
+          <span class="category-sidebar-title">分类</span>
+          <span class="category-sidebar-toggle" aria-hidden="true"></span>
+        </summary>
+        <nav class="category-sidebar-body" aria-label="完整分类树">
+          <a class="category-sidebar-all{% if not state.category and not state.tag and not state.favorite %} cat-selected{% endif %}"
+             href="/bookmarks">全部分类</a>
+          {% if tree_roots %}
+            {{ render_tree(tree_roots, counts, '/bookmarks', selected_id=state.category, expand_all=True) }}
+          {% else %}
+            <p class="category-sidebar-empty">还没有分类</p>
+          {% endif %}
+        </nav>
+      </details>
+    </aside>
+
+    <div class="bookmarks-content">
+      <div id="bookmark-list-container" aria-live="polite">
+        {% include "partials/bookmark_list.html" %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="bookmark-modal-root"></div>
+<div id="bulk-modal-root"></div>
+
+<div class="bulk-bar" id="bulk-bar" hidden>
+  <span class="bulk-count" id="bulk-count">已选择 0 项</span>
+  <button type="button" class="btn btn-outline btn-sm" data-bulk-action="category">分类</button>
+  <button type="button" class="btn btn-outline btn-sm" data-bulk-action="tags">标签</button>
+  <button type="button" class="btn btn-outline btn-sm" data-bulk-action="delete">删除</button>
+  <button type="button" class="icon-btn bulk-close" data-bulk-clear aria-label="清除选择">×</button>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="/static/js/bookmark-ui.js"></script>
+<script src="/static/js/manage-shared.js"></script>
+<script src="/static/js/bulk-ui.js"></script>
+{% endblock %}

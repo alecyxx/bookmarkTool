@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block head_extra %}<link rel="stylesheet" href="/static/css/admin.css">{% endblock %}
+{% block content %}
+<section class="manage-page import-export-page" aria-labelledby="import-title">
+  <h1 id="import-title" class="page-title">导入 / 导出</h1>
+
+  <div class="manage-card">
+    <h2 class="card-title">从浏览器导入书签</h2>
+    <p class="text-secondary import-hint">
+      支持 Netscape HTML（Chrome / Edge / Firefox / Safari 导出）与 UTF-8 CSV。
+      文件只保存在服务器并生成一次性预览；确认导入前不会写入任何数据。
+    </p>
+    <form id="import-form" class="import-form">
+      <div class="form-group">
+        <label for="import-file">书签文件 <span class="req">*</span></label>
+        <input class="form-control" type="file" id="import-file" name="file" required
+               accept=".html,.htm,.csv">
+        <div class="form-field-error" data-field-error="file"></div>
+      </div>
+      <div class="form-group">
+        <label for="import-folder-policy">文件夹 / 目录处理</label>
+        <select class="form-select" id="import-folder-policy" name="folder_policy">
+          <option value="category" selected>转成分类树（推荐）</option>
+          <option value="tags">转成标签</option>
+          <option value="ignore">忽略文件夹</option>
+        </select>
+      </div>
+      <div class="import-form-actions">
+        <button type="submit" class="btn btn-primary" id="import-preview-btn">解析并预览</button>
+        <div class="import-spinner" id="import-spinner" hidden>解析中，请稍候……</div>
+      </div>
+    </form>
+  </div>
+
+  <div id="import-preview-root" aria-live="polite"></div>
+
+  <div class="manage-card export-card">
+    <h2 class="card-title">导出书签</h2>
+    <p class="text-secondary import-hint">
+      只导出未删除的书签。HTML 适合迁移到其它浏览器；CSV 适合本系统往返或表格处理。
+    </p>
+    <div class="export-actions">
+      <a class="btn btn-primary" href="/api/export/html" download>导出 HTML（Netscape）</a>
+      <a class="btn btn-outline" href="/api/export/csv" download>导出 CSV</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts_extra %}
+<script src="/static/js/manage-shared.js"></script>
+<script src="/static/js/import-export-ui.js"></script>
+{% endblock %}

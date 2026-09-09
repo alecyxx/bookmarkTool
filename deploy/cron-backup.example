@@ -1,0 +1,21 @@
+# Bookmark Manager V1 每日备份 cron 示例（BM-V1-806）
+# 部署目录：/etc/cron.d/bookmark-backup
+# 容器 uid 10001 与宿主 /opt/bookmark/backups 所有权保持一致：
+#   sudo chown -R 10001:10001 /opt/bookmark/backups
+#
+# 每日 02:30 执行 daily 备份（日 7 份内保留）
+30 2 * * * root cd /opt/bookmark && docker compose exec -T app python -m scripts.backup --type daily --dir /data/backups >> /var/log/bookmark-backup.log 2>&1
+# 每周日 02:35 weekly（周 4 份内保留）
+35 2 * * 0 root cd /opt/bookmark && docker compose exec -T app python -m scripts.backup --type weekly --dir /data/backups >> /var/log/bookmark-backup.log 2>&1
+# 每月 1 日 02:40 monthly（月 12 份内保留）
+40 2 1 * * root cd /opt/bookmark && docker compose exec -T app python -m scripts.backup --type monthly --dir /data/backups >> /var/log/bookmark-backup.log 2>&1
+
+# 异机副本（可选）：容器内设置 OFF_SITE_BACKUP_DIR 指向 rclone 挂载或 NFS，
+# BACKUP_ENCRYPT_PASSPHRASE 存在时副本加密（openssl AES-256-CBC）：
+# 45 2 * * * root cd /opt/bookmark && OFF_SITE_BACKUP_DIR=/mnt/offsite BACKUP_ENCRYPT_PASSPHRASE=$(cat /etc/bookmark/backup-key) docker compose exec -T app python -m scripts.backup --type daily --dir /data/backups --skip-retention >> /var/log/bookmark-offsite.log 2>&1
+
+# 每日清理过期/终态导入任务与孤儿临时文件：
+0 3 * * * root cd /opt/bookmark && docker compose exec -T app python -m scripts.cleanup_import_jobs >> /var/log/bookmark-backup.log 2>&1
+
+# 定期恢复演练（月度，独立临时目录，不触碰生产库）：
+# 50 2 2 * * root cd /opt/bookmark && docker compose exec -T app python -m scripts.restore_verify --backup /data/backups/$(ls -1t /opt/bookmark/backups/*.db | head -1) >> /var/log/bookmark-restore.log 2>&1

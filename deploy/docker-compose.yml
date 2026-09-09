@@ -1,0 +1,81 @@
+# Bookmark Manager V1 生产编排（BM-V1-802）
+# 部署目录：生产 /opt/bookmark/deploy；构建上下文 ../source
+# 用法：
+#   cp .env.production.example .env   # 填写 SESSION_SECRET / DOMAIN 等
+#   docker compose up -d --build
+#   docker compose exec app python -m alembic upgrade head   # 首次/升级迁移
+name: bookmark
+
+services:
+  app:
+    build:
+      context: ../source
+      dockerfile: Dockerfile
+    image: bookmark-manager-v1:${IMAGE_TAG:-1.0.0}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite:////data/bookmarks.db
+      IMPORT_TMP_DIR: /data/import_tmp
+      # 生产密钥由 .env 提供（SESSION_SECRET 缺失时应用拒绝启动；CSRF 与其共用派生）
+    volumes:
+      - app-data:/data:rw            # 数据卷可写（库/临时/备份）
+      - type: bind
+        source: /opt/bookmark/backups
+        target: /data/backups
+        bind:
+          create_host_path: true
+    read_only: true                   # 代码与依赖只读（BM-V1-801）
+    tmpfs:
+      - /tmp:size=64m
+    expose:
+      - "8000"                        # 仅内部网络可达，不映射宿主机端口
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=5)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks: [internal]
+
+  caddy:
+    image: caddy:2.9-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro   # Caddyfile 只读（BM-V1-802）
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - DOMAIN=${DOMAIN:?DOMAIN 必填（如 bookmarks.example.com）}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks: [internal]
+
+volumes:
+  app-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  internal:
+    driver: bridge

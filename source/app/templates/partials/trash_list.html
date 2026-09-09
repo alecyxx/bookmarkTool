@@ -1,0 +1,22 @@
+{# 回收站列表容器（整页与 fragment 共用）。 #}
+{% if result.items %}
+<div class="bookmark-list">
+  <div class="list-select-row">
+    <label class="select-all-label">
+      <input type="checkbox" class="bm-select-all" aria-label="选择当前页全部">
+      <span class="text-secondary">选择当前页全部</span>
+    </label>
+  </div>
+  {% for bookmark in result.items %}
+  {% include "partials/trash_item.html" %}
+  {% endfor %}
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+<div class="empty-state">
+  <p class="empty-title">{% if q %}没有符合条件的已删除书签{% else %}回收站是空的{% endif %}</p>
+  <p class="text-secondary">
+    {% if q %}试试更换关键词。{% else %}删除的书签会先进入这里，之后可以恢复或永久删除。{% endif %}
+  </p>
+</div>
+{% endif %}

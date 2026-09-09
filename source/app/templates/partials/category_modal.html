@@ -1,0 +1,45 @@
+{# 分类新增/编辑 Modal。#}
+<div class="modal fade" id="category-modal" tabindex="-1" aria-labelledby="category-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="category-form">
+        <div class="modal-header">
+          <h2 class="modal-title" id="category-modal-title">
+            {{ '编辑分类' if category else '新建分类' }}
+          </h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-notice" role="alert" aria-live="assertive"></div>
+          <input type="hidden" name="category_tree_revision" value="{{ tree_revision }}">
+          {% if category %}<input type="hidden" name="version" value="{{ category.version }}">{% endif %}
+          <div class="form-group">
+            <label for="cat-name">名称 <span class="req">*</span></label>
+            <input class="form-control" type="text" id="cat-name" name="name" required maxlength="100"
+                   value="{{ category.name if category else '' }}" autofocus>
+            <div class="form-field-error" data-field-error="name"></div>
+          </div>
+          <div class="form-group">
+            <label for="cat-parent">父分类（留空为根分类）</label>
+            <select class="form-select" id="cat-parent" name="parent_id">
+              <option value="">（根分类）</option>
+              {% for cid, path in options %}
+              {% if not category or cid != category.id %}
+              <option value="{{ cid }}"{% if parent_id_default == cid %} selected{% endif %}>{{ path }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            <div class="form-field-error" data-field-error="parent_id"></div>
+          </div>
+          {% if category %}
+          <p class="text-secondary auth-hint">移动分类将连同全部子分类一起移动；不能移动到自身或后代节点下。</p>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-bs-dismiss="modal">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

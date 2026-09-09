@@ -1,0 +1,37 @@
+[project]
+name = "bookmark-manager"
+version = "0.1.0"
+description = "个人浏览器首页与书签管理系统 V1（FastAPI + Jinja2 + HTMX + SQLAlchemy + SQLite）"
+requires-python = ">=3.11"
+readme = "README.md"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["app", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# E501 行长度交给 ruff format 处理；B008 由 FastAPI 注入模式产生，不启用该规则。
+ignore = ["E501", "E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = [
+    "error::DeprecationWarning:sqlalchemy.*",
+    # 测试库生命周期末尾由 GC 收集的 sqlite 连接（各测试独立 dispose 主路径已验证）
+    "ignore::ResourceWarning",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/static/*", "app/templates/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

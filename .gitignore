@@ -1,0 +1,38 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# --- 本地数据 / 数据库（禁止提交） ---
+dev_data/
+data/
+tmp/
+backups/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+*.sqlite
+
+# --- 环境与密钥 ---
+.env
+.env.local
+*.pem
+*.key
+
+# --- 构建 / 运行产物 ---
+dist/
+build/
+*.log
+
+# --- IDE / 系统 ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

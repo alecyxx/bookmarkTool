@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="web-search" aria-labelledby="web-search-title">
+  <div class="web-search-logo">
+    <svg class="web-search-icon" viewBox="0 0 24 24" width="44" height="44" fill="none"
+         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"></circle>
+      <path d="m20.5 20.5-3.5-3.5"></path>
+    </svg>
+    <h1 id="web-search-title" class="hero-title">聚合搜索</h1>
+  </div>
+  <form id="web-search-form" class="web-search-form" role="search"
+        data-default-engine="{{ default_engine }}">
+    <div class="web-search-field">
+      <label class="visually-hidden" for="web-search-input">搜索词</label>
+      <svg class="web-search-field-icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20.5 20.5-3.5-3.5"></path>
+      </svg>
+      <input type="search" id="web-search-input" class="form-control form-control-lg"
+             name="q" placeholder="输入搜索词……" maxlength="500" autocomplete="off"
+             data-shortcut-search required>
+    </div>
+    <fieldset class="engine-fieldset">
+      <legend class="visually-hidden">选择搜索引擎</legend>
+      <label class="engine-option">
+        <input type="radio" name="engine" value="google" checked>
+        <span>Google</span>
+      </label>
+      <label class="engine-option">
+        <input type="radio" name="engine" value="bing">
+        <span>Bing</span>
+      </label>
+      <label class="engine-option">
+        <input type="radio" name="engine" value="baidu">
+        <span>百度</span>
+      </label>
+    </fieldset>
+    <p class="web-search-error" id="web-search-error" role="alert"></p>
+  </form>
+</section>
+{% endblock %}
+{% block scripts_extra %}
+<script src="/static/js/web-search.js"></script>
+{% endblock %}

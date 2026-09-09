@@ -1,0 +1,33 @@
+{# 分类树渲染宏：书签页侧栏筛选树使用。
+   分类管理页树在 partials/category_tree.html（含管理操作按钮），不复用本宏。
+   counts: {id: 含后代未删除书签总数}；base_url：链接前缀；
+   open_ids：需要展开的节点 id 集合（expand_all=True 时忽略）；
+   selected_id：当前选中节点；expand_all=True 整树展开。 #}
+{% macro branch(node, counts, base_url, open_ids, selected_id, expand_all=False) -%}
+<li class="cat-branch" data-cat-id="{{ node.category.id }}">
+  {% if node.children %}
+  <details{% if expand_all or node.category.id in open_ids %} open{% endif %}>
+    <summary class="cat-row">
+      <a class="cat-link{% if selected_id == node.category.id %} cat-selected{% endif %}"
+         href="{{ base_url }}?category={{ node.category.id }}">{{ node.category.name }}</a>
+      <span class="cat-count" title="含后代书签总数">{{ counts.get(node.category.id, 0) }}</span>
+    </summary>
+    <ul class="cat-children">
+      {% for child in node.children %}{{ branch(child, counts, base_url, open_ids, selected_id, expand_all) }}{% endfor %}
+    </ul>
+  </details>
+  {% else %}
+  <div class="cat-row">
+    <a class="cat-link{% if selected_id == node.category.id %} cat-selected{% endif %}"
+       href="{{ base_url }}?category={{ node.category.id }}">{{ node.category.name }}</a>
+    <span class="cat-count" title="含后代书签总数">{{ counts.get(node.category.id, 0) }}</span>
+  </div>
+  {% endif %}
+</li>
+{%- endmacro %}
+
+{% macro render_tree(roots, counts, base_url='/bookmarks', open_ids=(), selected_id=None, expand_all=False) -%}
+<ul class="cat-tree">
+  {% for node in roots %}{{ branch(node, counts, base_url, open_ids, selected_id, expand_all) }}{% endfor %}
+</ul>
+{%- endmacro %}

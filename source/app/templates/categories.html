@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block head_extra %}<link rel="stylesheet" href="/static/css/admin.css">{% endblock %}
+{% block content %}
+<section class="manage-page" aria-labelledby="categories-title">
+  <div class="manage-header">
+    <h1 id="categories-title" class="page-title">分类</h1>
+  </div>
+  <div id="category-app">
+    {% include "partials/category_tree.html" %}
+  </div>
+</section>
+<div id="category-modal-root"></div>
+{% endblock %}
+{% block scripts_extra %}
+<script src="/static/js/manage-shared.js"></script>
+<script src="/static/js/categories-ui.js"></script>
+{% endblock %}

@@ -1,0 +1,22 @@
+# 排除开发与构建产物（BM-V1-801：镜像不含测试数据/构建缓存/开发依赖）
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+dev_data/
+coverage.xml
+tests/
+_dbg*.py
+_fix*.py
+Dockerfile
+.dockerignore
+.env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+backups/
+logs/

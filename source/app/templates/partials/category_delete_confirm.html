@@ -1,0 +1,40 @@
+{# 分类删除影响确认（删除前必须展示直接书签与子节点数）。#}
+<div class="modal fade" id="confirm-modal" tabindex="-1" aria-labelledby="confirm-title" aria-hidden="true"
+     data-category-id="{{ category.id }}" data-version="{{ category.version }}" data-revision="{{ tree_revision }}">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="confirm-title">删除分类「{{ category.name }}」</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <p>此操作只删除当前分类节点，不会删除任何书签或子分类：</p>
+        <ul class="confirm-list">
+          <li>直接书签 <strong>{{ direct_bookmarks }}</strong> 条 → 移动到下方选择的目标分类（或“未分类”）</li>
+          {% if direct_children %}
+          <li>直接子分类 <strong>{{ direct_children }}</strong> 个 → 提升到「{{ '根层级' if not category.parent_id else '当前分类的父级' }}」</li>
+          {% else %}
+          <li>没有直接子分类</li>
+          {% endif %}
+          <li>子分类下的书签不会受影响</li>
+        </ul>
+        <div class="form-group">
+          <label for="confirm-move-to">直接书签迁移到</label>
+          <select class="form-select" id="confirm-move-to">
+            <option value="">（未分类）</option>
+            {% for cid, path in options %}
+            {% if cid != category.id %}
+            <option value="{{ cid }}"{% if category.parent_id == cid %} selected{% endif %}>{{ path }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <p class="danger-note">删除不可撤销；回收站不受影响。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirm-delete-btn">删除该分类</button>
+      </div>
+    </div>
+  </div>
+</div>

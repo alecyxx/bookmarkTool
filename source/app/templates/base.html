@@ -1,0 +1,51 @@
+{% macro csrf_input() -%}
+{% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
+{%- endmacro %}
+<!DOCTYPE html>
+<html lang="zh-CN" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% if page_title %}{{ page_title }} · {% endif %}Bookmark{% endblock %}</title>
+  <link rel="icon" href="/static/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <header class="app-header">
+    <div class="container-fluid app-header-inner">
+      <a class="brand" href="/" aria-label="Bookmark 首页">Bookmark</a>
+      <nav class="main-nav" aria-label="主导航">
+        <ul class="nav-list">
+          {% for key, href, label in nav_items %}
+          <li>
+            <a class="nav-link{% if active_nav == key %} active{% endif %}"
+               href="{{ href }}"{% if active_nav == key %} aria-current="page"{% endif %}>
+              {{ label }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <noscript>
+    <div class="noscript-warning" role="note">
+      当前浏览器禁用了 JavaScript。系统核心功能依赖 HTMX 与少量脚本，请启用 JavaScript 后获得完整体验。
+    </div>
+  </noscript>
+  <main id="main-content" class="app-main">
+    {% block content %}{% endblock %}
+  </main>
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="false"></div>
+  <div id="modal-root"></div>
+  <script src="/static/vendor/htmx/htmx.min.js" defer></script>
+  <script src="/static/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/shortcuts.js" defer></script>
+  {% block scripts_extra %}{% endblock %}
+  <script src="/static/js/page-init.js" defer></script>
+</body>
+</html>

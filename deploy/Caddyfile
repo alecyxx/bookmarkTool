@@ -1,0 +1,19 @@
+# Bookmark Manager V1 Caddy 配置（BM-V1-802）
+# 证书签发/续期：Caddy 自动管理 ACME（HTTP-01，80 端口必须可访问）；
+#   自定义 CA/内部环境请改用 tls internal 或 cert 指令（见运维手册）。
+# HTTP -> HTTPS 由 Caddy 自动 308 跳转。
+
+{$DOMAIN:bookmarks.example.com} {
+	encode zstd gzip
+
+	# 站内反向代理（app 只在 internal 网络暴露 8000）
+	reverse_proxy app:8000 {
+		# 传递真实客户端 IP 供审计日志使用
+		header_up X-Forwarded-For {remote_host}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

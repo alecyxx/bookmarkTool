@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="auth-panel" aria-labelledby="login-title">
+  <h1 id="login-title" class="auth-title">登录 Bookmark</h1>
+  {% if form_error %}
+  <div class="form-error" role="alert" aria-live="assertive">
+    {{ form_error }}
+  </div>
+  {% endif %}
+  <form method="post" action="/auth/login" class="auth-form" novalidate>
+    {{ csrf_input() }}
+    {% if next_target %}
+    <input type="hidden" name="next" value="{{ next_target }}">
+    {% endif %}
+    <div class="form-group">
+      <label for="username">用户名</label>
+      <input class="form-control" type="text" id="username" name="username"
+             autocomplete="username" required autofocus>
+    </div>
+    <div class="form-group">
+      <label for="password">密码</label>
+      <input class="form-control" type="password" id="password" name="password"
+             autocomplete="current-password" required>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">登录</button>
+    <p class="text-secondary auth-hint">
+      未初始化账号时，请在服务器上执行
+      <code>python -m scripts.create_admin</code> 创建管理员。
+    </p>
+  </form>
+</section>
+{% endblock %}

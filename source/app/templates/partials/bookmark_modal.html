@@ -1,0 +1,73 @@
+{# 书签新增/编辑共用 Modal（BM-V1-307）。由 /api/bookmarks/new-modal 或 /api/bookmarks/{id} 加载。 #}
+<div class="modal fade" id="bookmark-modal" tabindex="-1" aria-labelledby="bookmark-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="bookmark-form" data-mode="{{ modal_mode }}"
+            {% if bookmark %}data-id="{{ bookmark.id }}"{% endif %}>
+        <div class="modal-header">
+          <h2 class="modal-title" id="bookmark-modal-title">
+            {{ '编辑书签' if bookmark else '新增书签' }}
+          </h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-notice" role="alert" aria-live="assertive"></div>
+          {% if bookmark %}<input type="hidden" name="version" value="{{ bookmark.version }}">{% endif %}
+          <div class="form-group">
+            <label for="bm-title">URL <span class="req">*</span></label>
+            <input class="form-control" type="url" id="bm-url" name="url" required
+                   maxlength="4096" value="{{ bookmark.url if bookmark else '' }}"
+                   placeholder="https://…">
+            <div class="form-field-error" data-field-error="url"></div>
+          </div>
+          <div class="form-group">
+            <label for="bm-title">标题 <span class="req">*</span></label>
+            <input class="form-control" type="text" id="bm-title" name="title" required
+                   maxlength="300" value="{{ bookmark.title if bookmark else '' }}">
+            <div class="form-field-error" data-field-error="title"></div>
+          </div>
+          <div class="form-group">
+            <label for="bm-category">分类</label>
+            <select class="form-select" id="bm-category" name="category_id">
+              <option value="">未分类</option>
+              {% for cid, path in category_options %}
+              <option value="{{ cid }}"{% if bookmark and bookmark.category_id == cid %} selected{% endif %}>{{ path }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-field-error" data-field-error="category_id"></div>
+          </div>
+          <div class="form-group">
+            <label for="bm-tags">标签（逗号分隔）</label>
+            <input class="form-control" type="text" id="bm-tags" name="tags"
+                   maxlength="500" autocomplete="off"
+                   value="{{ bookmark.tags | map(attribute='name') | join(', ') if bookmark else '' }}">
+            <div class="form-field-error" data-field-error="tags"></div>
+          </div>
+          <div class="form-group">
+            <label for="bm-description">备注</label>
+            <textarea class="form-control" id="bm-description" name="description" rows="3"
+                      maxlength="2000">{{ bookmark.description if bookmark else '' }}</textarea>
+            <div class="form-field-error" data-field-error="description"></div>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="bm-favorite" name="is_favorite"
+                   {% if bookmark and bookmark.is_favorite %}checked{% endif %}>
+            <label class="form-check-label" for="bm-favorite">收藏</label>
+          </div>
+          {% if duplicate and modal_mode == 'edit' and (duplicate.active_count - 1 or duplicate.trashed_count) %}
+          <div class="duplicate-hint" role="note">
+            {% if duplicate.active_count - 1 %}已有 {{ duplicate.active_count - 1 }} 条未删除书签使用相同网址。{% endif %}
+            {% if duplicate.trashed_count %}回收站中存在 {{ duplicate.trashed_count }} 条相同网址。{% endif %}
+          </div>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-bs-dismiss="modal">取消</button>
+          <button type="submit" class="btn btn-primary" data-bm-submit>
+            {{ '保存修改' if bookmark else '保存' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

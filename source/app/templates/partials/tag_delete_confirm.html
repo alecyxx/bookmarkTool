@@ -1,0 +1,27 @@
+{# 标签删除二次确认（显示受影响的未删除书签数量）。#}
+<div class="modal fade" id="confirm-modal" tabindex="-1" aria-labelledby="confirm-title" aria-hidden="true"
+     data-tag-id="{{ tag.id }}" data-version="{{ tag.version }}">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="confirm-title">删除标签「{{ tag.name }}」</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          {% if affected %}
+          当前有 <strong>{{ affected }}</strong> 条未删除书签使用该标签，删除后这些书签会失去此标签，
+          {% else %}
+          当前没有未删除书签使用该标签，
+          {% endif %}
+          但<strong>不会删除任何书签</strong>。
+        </p>
+        <p class="danger-note">此操作不可撤销。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirm-delete-btn">删除标签</button>
+      </div>
+    </div>
+  </div>
+</div>

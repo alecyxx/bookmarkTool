@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="settings-page" aria-labelledby="settings-title">
+  <h1 id="settings-title" class="page-title">设置</h1>
+
+  <div id="settings-result" role="status" aria-live="polite"></div>
+
+  <form class="card-settings js-put-form" data-put="/api/settings/profile"
+        data-result="settings-result" novalidate>
+    <h2 class="section-title">修改用户名</h2>
+    <div class="form-group">
+      <label for="username">用户名</label>
+      <input class="form-control" type="text" id="username" name="username"
+             value="{{ current_user.username }}" maxlength="100" required>
+    </div>
+    <div class="form-field-error" data-field-error="username"></div>
+    <button class="btn btn-primary" type="submit">保存用户名</button>
+  </form>
+
+  <form class="card-settings js-put-form" data-put="/api/settings/password"
+        data-result="settings-result" novalidate>
+    <h2 class="section-title">修改密码</h2>
+    <div class="form-group">
+      <label for="current_password">当前密码</label>
+      <input class="form-control" type="password" id="current_password"
+             name="current_password" autocomplete="current-password" required>
+    </div>
+    <div class="form-field-error" data-field-error="current_password"></div>
+    <div class="form-group">
+      <label for="new_password">新密码（至少 12 个字符）</label>
+      <input class="form-control" type="password" id="new_password"
+             name="new_password" autocomplete="new-password" minlength="12" required>
+    </div>
+    <div class="form-field-error" data-field-error="new_password"></div>
+    <button class="btn btn-primary" type="submit">更新密码</button>
+    <p class="text-secondary auth-hint">修改密码后，其它已登录会话将立即失效。</p>
+  </form>
+
+  <form class="card-settings" method="post" action="/auth/logout">
+    {{ csrf_input() }}
+    <h2 class="section-title">退出登录</h2>
+    <p class="text-secondary">退出后需要重新输入用户名与密码。</p>
+    <button class="btn btn-outline" type="submit">退出登录</button>
+  </form>
+</section>
+{% endblock %}
