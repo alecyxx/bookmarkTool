@@ -25,13 +25,18 @@
       ids: ids,
       versions: versions,
       index: ids.indexOf(id),
+      revision: Number(group.getAttribute("data-revision") || 0),
     };
   }
 
   function moveSibling(button, up) {
     var ctx = siblingContext(button);
-    if (ctx.index < 0 || (up && ctx.index === 0) || (!up && ctx.index === ctx.ids.length - 1)) {
-      return; // 已在边界
+    if (ctx.index < 0) {
+      return;
+    }
+    if ((up && ctx.index === 0) || (!up && ctx.index === ctx.ids.length - 1)) {
+      M.toast(up ? "已是最上方" : "已是最下方");
+      return;
     }
     var ids = ctx.ids.slice();
     var versions = ctx.versions.slice();
@@ -50,7 +55,7 @@
       body: {
         parent_id: ctx.parentId === "" ? null : Number(ctx.parentId),
         ordered: ordered,
-        category_tree_revision: Number(group.getAttribute("data-revision") || 0),
+        category_tree_revision: ctx.revision,
       },
     })
       .then(function (result) {

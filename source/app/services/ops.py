@@ -25,7 +25,7 @@ from sqlalchemy.engine import Engine
 logger = logging.getLogger("ops")
 
 # 与 migrations/versions 当前 head 保持一致（漂移由测试防护）
-EXPECTED_DB_REVISION = "0001_initial"
+EXPECTED_DB_REVISION = "0002_bookmark_sort_weight"
 
 # 备份文件名：{type}-{YYYYMMDD-HHMMSS}-{rand8}.db
 BACKUP_NAME_RE = re.compile(r"^(daily|weekly|monthly)-(\d{8}-\d{6})-[0-9a-f]{8}\.db$")

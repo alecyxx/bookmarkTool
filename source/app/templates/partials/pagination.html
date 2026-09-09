@@ -8,10 +8,10 @@
     {% if filter_url is defined %}
     <div class="page-size-options" aria-label="每页条数">
       <span class="text-secondary">每页</span>
-      <a class="page-size-link{% if state.page_size == 15 %} active{% endif %}"
-         href="{{ filter_url(page_size=15) }}">15</a>
-      <a class="page-size-link{% if state.page_size == 30 %} active{% endif %}"
-         href="{{ filter_url(page_size=30) }}">30</a>
+      <a class="page-size-link{% if state.page_size == 32 %} active{% endif %}"
+         href="{{ filter_url(page_size=32) }}">32</a>
+      <a class="page-size-link{% if state.page_size == 64 %} active{% endif %}"
+         href="{{ filter_url(page_size=64) }}">64</a>
       <a class="page-size-link{% if state.page_size >= page_size_all %} active{% endif %}"
          href="{{ filter_url(page_size='all') }}">全部</a>
     </div>

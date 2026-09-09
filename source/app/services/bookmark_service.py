@@ -23,10 +23,10 @@ from app.models.tag import Tag
 from app.services.category_service import CategoryService
 from app.services.normalize import normalize_name, strip_display_name
 from app.services.url_service import InvalidUrlError, normalize_url
-from app.services.versioned import apply_versioned_update
+from app.services.versioned import apply_versioned_update, fetch_versioned
 
 PAGE_SIZE_ALL = 1_000_000
-PAGE_SIZES = (15, 30, 25, 50, 100, PAGE_SIZE_ALL)
+PAGE_SIZES = (15, 30, 25, 50, 100, 32, 64, PAGE_SIZE_ALL)
 SORT_OPTIONS = (
     "created_desc",
     "created_asc",
@@ -34,6 +34,7 @@ SORT_OPTIONS = (
     "title_asc",
     "title_desc",
     "favorite_first",
+    "custom",
 )
 DEFAULT_SORT = "created_desc"
 MAX_SEARCH_LENGTH = 200
@@ -282,7 +283,53 @@ class BookmarkService:
             return (Bookmark.title.desc(), Bookmark.id.desc())
         if sort == "favorite_first":
             return (Bookmark.is_favorite.desc(), Bookmark.created_at.desc(), Bookmark.id.desc())
+        if sort == "custom":
+            # 按分类分组（未分类置后），组内按权重
+            return (
+                Bookmark.category_id.is_(None),
+                Bookmark.category_id.asc(),
+                Bookmark.sort_weight.asc(),
+                Bookmark.id.asc(),
+            )
         return (Bookmark.created_at.desc(), Bookmark.id.desc())  # created_desc 默认
+
+    def move(self, bookmark_id: int, version: int, direction: str) -> None:
+        """同分类作用域内上移/下移：交换相邻两条的 sort_weight（CAS 校验各自 version）。"""
+        bookmark = fetch_versioned(self.session, Bookmark, bookmark_id)
+        if bookmark.deleted_at is not None:
+            raise not_found("书签不存在。")
+        if bookmark.version != version:
+            raise conflict("数据已变化，请重新加载后再试。")
+        cid = bookmark.category_id
+        scope = (Bookmark.category_id.is_(None),) if cid is None else (Bookmark.category_id == cid,)
+        rows = list(
+            self.session.scalars(
+                select(Bookmark)
+                .where(Bookmark.deleted_at.is_(None), *scope)
+                .order_by(Bookmark.sort_weight.asc(), Bookmark.id.asc())
+            )
+        )
+        index = next((i for i, b in enumerate(rows) if b.id == bookmark_id), -1)
+        target = index - 1 if direction == "up" else index + 1
+        if index < 0 or target < 0 or target >= len(rows):
+            raise conflict("已是最前/最后。")
+        neighbor = rows[target]
+        weight_self = bookmark.sort_weight
+        weight_neighbor = neighbor.sort_weight
+        apply_versioned_update(
+            self.session,
+            Bookmark,
+            bookmark_id,
+            bookmark.version,
+            {"sort_weight": weight_neighbor},
+        )
+        apply_versioned_update(
+            self.session,
+            Bookmark,
+            neighbor.id,
+            neighbor.version,
+            {"sort_weight": weight_self},
+        )
 
     def list_page(
         self,

@@ -62,14 +62,14 @@ class TestUpgradeAcceptance:
         ):
             assert expected in tables
         assert (
-            conn.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0001_initial"
+            conn.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0002_bookmark_sort_weight"
         )
         conn.close()
         # 重复升级幂等
         self._upgrade(url)
         conn = sqlite3.connect(db_file)
         assert (
-            conn.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0001_initial"
+            conn.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0002_bookmark_sort_weight"
         )
         conn.close()
 

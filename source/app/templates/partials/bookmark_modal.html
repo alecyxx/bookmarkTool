@@ -37,10 +37,19 @@
             <div class="form-field-error" data-field-error="category_id"></div>
           </div>
           <div class="form-group">
-            <label for="bm-tags">标签（逗号分隔）</label>
+            <label for="bm-tags">标签</label>
             <input class="form-control" type="text" id="bm-tags" name="tags"
-                   maxlength="500" autocomplete="off"
+                   maxlength="500" autocomplete="off" placeholder="输入自定义标签，逗号分隔"
                    value="{{ bookmark.tags | map(attribute='name') | join(', ') if bookmark else '' }}">
+            {% if all_tags %}
+            <div class="tag-suggest" id="bm-tags-suggest">
+              <span class="text-secondary tag-suggest-label">已有标签：</span>
+              {% for t in all_tags %}
+              <button type="button" class="tag-pill tag-suggest-item" data-tag-name="{{ t.name }}"
+                      title="已有 {{ t.count }} 条书签使用">{{ t.name }}</button>
+              {% endfor %}
+            </div>
+            {% endif %}
             <div class="form-field-error" data-field-error="tags"></div>
           </div>
           <div class="form-group">

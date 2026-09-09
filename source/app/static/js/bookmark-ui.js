@@ -81,6 +81,7 @@
         var modal = new bootstrap.Modal(modalElement);
         modal.show();
         bindFormSubmit(modalElement);
+        bindTagSuggest(modalElement);
       })
       .catch(function () {
         toast("无法打开编辑窗口，请重试。", true);
@@ -170,6 +171,45 @@
     });
   }
 
+  function bindTagSuggest(scope) {
+    var input = scope.querySelector('[name="tags"]');
+    var suggest = scope.querySelector('#bm-tags-suggest');
+    if (!input || !suggest) {
+      return;
+    }
+    function currentTags() {
+      return (input.value || "")
+        .split(",")
+        .map(function (item) {
+          return item.trim();
+        })
+        .filter(Boolean);
+    }
+    function refresh() {
+      var current = currentTags();
+      suggest.querySelectorAll(".tag-suggest-item").forEach(function (button) {
+        var name = button.getAttribute("data-tag-name");
+        button.classList.toggle("selected", current.indexOf(name) !== -1);
+      });
+    }
+    suggest.addEventListener("click", function (event) {
+      var button = event.target.closest(".tag-suggest-item");
+      if (!button) {
+        return;
+      }
+      var name = button.getAttribute("data-tag-name");
+      var current = currentTags();
+      if (current.indexOf(name) === -1) {
+        current.push(name);
+        input.value = current.join(", ");
+      }
+      input.focus();
+      refresh();
+    });
+    input.addEventListener("input", refresh);
+    refresh();
+  }
+
   function bindDynamicActions(scope) {
     if (!scope) {
       return;
@@ -233,6 +273,42 @@
           })
           .finally(function () {
             button.disabled = false;
+          });
+      });
+    });
+    scope.querySelectorAll("[data-bm-move]").forEach(function (button) {
+      if (button.dataset.bound) {
+        return;
+      }
+      button.dataset.bound = "true";
+      button.addEventListener("click", function () {
+        var id = Number(button.getAttribute("data-id"));
+        var version = Number(button.getAttribute("data-version"));
+        var direction = button.getAttribute("data-direction");
+        fetch("/api/bookmarks/move", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": getCookie(csrfCookieName) || "",
+          },
+          body: JSON.stringify({ id: id, version: version, direction: direction }),
+        })
+          .then(function (response) {
+            return response.json().then(function (data) {
+              return { status: response.status, data: data };
+            });
+          })
+          .then(function (result) {
+            if (result.status === 200) {
+              refreshList();
+            } else {
+              var error = result.data.error || {};
+              toast(error.message || "移动失败。", true);
+              refreshList();
+            }
+          })
+          .catch(function () {
+            toast("网络错误，请重试。", true);
           });
       });
     });

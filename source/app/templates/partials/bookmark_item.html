@@ -1,38 +1,45 @@
-{# 单条书签（列表行 / 编辑收藏后替换行）。 #}
+{# 单条书签（卡片 / 编辑收藏后替换）。 #}
 <article class="bookmark-item" id="bookmark-item-{{ bookmark.id }}" data-bookmark-id="{{ bookmark.id }}" data-version="{{ bookmark.version }}">
-  <label class="bm-check" aria-label="选择 {{ bookmark.title }}">
-    <input type="checkbox" class="bm-select" value="{{ bookmark.id }}">
-  </label>
-  <div class="bm-favicon" aria-hidden="true">
-    {% if app_settings().enable_remote_favicons and bookmark.favicon_url %}
-    <img src="{{ bookmark.favicon_url }}" alt="" loading="lazy" width="16" height="16">
-    {% else %}
-    <span class="default-icon">⌂</span>
-    {% endif %}
-  </div>
-  <div class="bm-body">
+  <div class="bm-card-head">
+    <div class="bm-favicon" aria-hidden="true">
+      {% if app_settings().enable_remote_favicons and bookmark.favicon_url %}
+      <img src="{{ bookmark.favicon_url }}" alt="" loading="lazy" width="16" height="16">
+      {% else %}
+      <span class="default-icon">⌂</span>
+      {% endif %}
+    </div>
     <div class="bm-title-row">
       <a class="bm-title" href="{{ bookmark.url }}" target="_blank" rel="noopener noreferrer">{{ bookmark.title }}</a>
-      <button class="icon-btn bm-fav" type="button"
-              data-bm-favorite data-id="{{ bookmark.id }}" data-version="{{ bookmark.version }}"
-              aria-pressed="{{ 'true' if bookmark.is_favorite else 'false' }}"
-              aria-label="{{ '取消收藏' if bookmark.is_favorite else '收藏' }}">
-        <span aria-hidden="true">{{ '★' if bookmark.is_favorite else '☆' }}</span>
-      </button>
-      <button class="icon-btn bm-menu" type="button" data-bm-edit
-              data-id="{{ bookmark.id }}" aria-haspopup="true"
-              aria-label="编辑 {{ bookmark.title }}">⋯</button>
     </div>
-    <p class="bm-url text-secondary">{{ bookmark.url }}</p>
-    {% if bookmark.description %}
-    <p class="bm-desc text-secondary">{{ bookmark.description }}</p>
-    {% endif %}
-    {% if bookmark.tags %}
-    <ul class="bm-tags" aria-label="标签">
-      {% for tag in bookmark.tags %}
-      <li><a class="tag-pill" href="/bookmarks?tag={{ tag.id }}">{{ tag.name }}</a></li>
-      {% endfor %}
-    </ul>
+  </div>
+  <div class="bm-actions">
+    <button class="icon-btn bm-fav" type="button"
+            data-bm-favorite data-id="{{ bookmark.id }}" data-version="{{ bookmark.version }}"
+            aria-pressed="{{ 'true' if bookmark.is_favorite else 'false' }}"
+            aria-label="{{ '取消收藏' if bookmark.is_favorite else '收藏' }}">
+      <span aria-hidden="true">{{ '★' if bookmark.is_favorite else '☆' }}</span>
+    </button>
+    <button class="icon-btn bm-menu" type="button" data-bm-edit
+            data-id="{{ bookmark.id }}" aria-haspopup="true"
+            aria-label="编辑 {{ bookmark.title }}">⋯</button>
+    {% if state is defined and state.sort == 'custom' and state.category %}
+    <button class="icon-btn bm-move" type="button" data-bm-move data-direction="up"
+            data-id="{{ bookmark.id }}" data-version="{{ bookmark.version }}"
+            aria-label="前移 {{ bookmark.title }}">↑</button>
+    <button class="icon-btn bm-move" type="button" data-bm-move data-direction="down"
+            data-id="{{ bookmark.id }}" data-version="{{ bookmark.version }}"
+            aria-label="后移 {{ bookmark.title }}">↓</button>
     {% endif %}
   </div>
+  <p class="bm-url text-secondary" title="{{ bookmark.url }}">{{ bookmark.url }}</p>
+  {% if bookmark.description %}
+  <p class="bm-desc text-secondary">{{ bookmark.description }}</p>
+  {% endif %}
+  {% if bookmark.tags %}
+  <ul class="bm-tags" aria-label="标签">
+    {% for tag in bookmark.tags %}
+    <li><a class="tag-pill" href="/bookmarks?tag={{ tag.id }}">{{ tag.name }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
 </article>

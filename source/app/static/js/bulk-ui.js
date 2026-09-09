@@ -49,6 +49,9 @@
       container.querySelectorAll(".bm-select").forEach(function (box) {
         box.checked = false;
       });
+      container.querySelectorAll(".is-selected").forEach(function (card) {
+        card.classList.remove("is-selected");
+      });
       var all = container.querySelector(".bm-select-all");
       if (all) {
         all.checked = false;
@@ -271,28 +274,50 @@
     init: function (mode) {
       MODE = mode || "bookmarks";
       document.addEventListener("change", function (event) {
-        if (event.target.classList && event.target.classList.contains("bm-select")) {
-          var row = event.target.closest("[data-bookmark-id]");
+        var target = event.target;
+        if (target.classList && target.classList.contains("bm-select")) {
+          var row = target.closest("[data-bookmark-id]");
           if (row) {
             setSelected(
               row.getAttribute("data-bookmark-id"),
               row.getAttribute("data-version") || 1,
-              event.target.checked
+              target.checked
             );
           }
-        } else if (event.target.classList && event.target.classList.contains("bm-select-all")) {
+          return;
+        }
+        if (target.classList && target.classList.contains("bm-select-all")) {
           var container = listContainer();
-          var on = event.target.checked;
-          container.querySelectorAll(".bm-select").forEach(function (box) {
-            box.checked = on;
-          });
-          if (on) {
-            selected = {};
-            collectFromCheckboxes(container);
-          } else {
-            clearSelection();
+          if (!container) {
+            return;
           }
-          updateBar();
+          var on = target.checked;
+          if (MODE === "bookmarks") {
+            // 书签页：卡片点击选中（无勾选框），全选控制 .is-selected
+            container.querySelectorAll("[data-bookmark-id]").forEach(function (card) {
+              var id = card.getAttribute("data-bookmark-id");
+              var version = card.getAttribute("data-version") || 1;
+              if (on) {
+                card.classList.add("is-selected");
+                selected[String(id)] = Number(version);
+              } else {
+                card.classList.remove("is-selected");
+                delete selected[String(id)];
+              }
+            });
+            updateBar();
+          } else {
+            container.querySelectorAll(".bm-select").forEach(function (box) {
+              box.checked = on;
+            });
+            if (on) {
+              selected = {};
+              collectFromCheckboxes(container);
+            } else {
+              clearSelection();
+            }
+            updateBar();
+          }
         }
       });
 
@@ -314,6 +339,18 @@
             openEmptyTrash();
           }
           return;
+        }
+        if (MODE === "bookmarks") {
+          // 书签页：点击卡片（非标题/标签链接、非操作按钮）切换选中
+          var card = target.closest && target.closest("[data-bookmark-id]");
+          if (card && !(target.closest && target.closest("a, button"))) {
+            var id = card.getAttribute("data-bookmark-id");
+            var version = card.getAttribute("data-version") || 1;
+            var on = !card.classList.contains("is-selected");
+            card.classList.toggle("is-selected", on);
+            setSelected(id, version, on);
+            return;
+          }
         }
         if (target.closest && target.closest("[data-trash-restore]")) {
           var restoreBtn = target.closest("[data-trash-restore]");

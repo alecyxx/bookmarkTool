@@ -38,6 +38,7 @@ class Bookmark(Base):
         Index("ix_bookmarks_created_at", "created_at"),
         Index("ix_bookmarks_updated_at", "updated_at"),
         Index("ix_bookmarks_list", "deleted_at", "created_at", "id"),
+        Index("ix_bookmarks_sort", "deleted_at", "category_id", "sort_weight"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -53,6 +54,7 @@ class Bookmark(Base):
         Boolean, nullable=False, default=False, server_default="0"
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    sort_weight: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=now_utc)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=now_utc, onupdate=now_utc

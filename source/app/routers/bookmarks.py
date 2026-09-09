@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -24,6 +24,7 @@ from app.dependencies import (
     require_api_guard,
     require_page_redirect,
 )
+from app.errors import validation_error
 from app.models.tag import Tag
 from app.models.user import User
 from app.schemas.bookmark import BookmarkCreate, BookmarkUpdate
@@ -34,6 +35,7 @@ from app.services.bookmark_service import (
     list_category_options,
 )
 from app.services.category_service import CategoryService
+from app.services.tag_service import TagService
 from app.template_utils import render
 
 router = APIRouter()
@@ -45,9 +47,10 @@ _ALLOWED_SORTS = (
     "title_asc",
     "title_desc",
     "favorite_first",
+    "custom",
 )
 
-DEFAULT_PAGE_SIZE = 15
+DEFAULT_PAGE_SIZE = 32
 
 
 class VersionedAction(BaseModel):
@@ -74,6 +77,12 @@ class TrashEmptyAction(BaseModel):
     confirm: str = Field(min_length=1)
 
 
+class BookmarkMove(BaseModel):
+    id: int
+    version: int = Field(ge=1)
+    direction: Literal["up", "down"]
+
+
 def _parse_int_param(value: str | None, default: int) -> int | None:
     if value is None or value == "":
         return None
@@ -98,7 +107,7 @@ def _build_state(request: Request) -> dict:
     page_size_raw = params.get("page_size")
     if page_size_raw == "all":
         page_size = PAGE_SIZE_ALL
-    elif page_size_raw in ("15", "30"):
+    elif page_size_raw in ("32", "64"):
         page_size = int(page_size_raw)
     else:
         page_size = DEFAULT_PAGE_SIZE
@@ -113,6 +122,11 @@ def _build_state(request: Request) -> dict:
         "page": page,
         "page_size": page_size,
     }
+
+
+def _tag_options(db: Session) -> list[dict]:
+    """弹窗标签选择器所需的现有标签库（名称 + 使用次数）。"""
+    return [{"name": tag.name, "count": cnt} for tag, cnt in TagService(db).list_with_counts()]
 
 
 def _page_size_token(page_size: int | str) -> str:
@@ -271,6 +285,24 @@ async def bookmark_list_fragment(
     return render(request, "partials/bookmark_list.html", context)
 
 
+# ---------- 排序（自定义权重上移/下移） ----------
+
+
+@router.post("/api/bookmarks/move", response_model=None, include_in_schema=False)
+async def move_bookmark(
+    payload: BookmarkMove,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(require_api_guard)],
+) -> JSONResponse:
+    if isinstance(user, RedirectResponse):
+        raise validation_error({"detail": "请先登录。"})
+    svc = BookmarkService(db)
+    svc.move(payload.id, payload.version, payload.direction)
+    db.commit()
+    return JSONResponse({"ok": True})
+
+
 # ---------- 单条 ----------
 
 
@@ -286,6 +318,7 @@ async def bookmark_new_form(
         "request": request,
         "bookmark": None,
         "category_options": list_category_options(db),
+        "all_tags": _tag_options(db),
         "duplicate": None,
         "modal_mode": "new",
     }
@@ -307,6 +340,7 @@ async def bookmark_edit_form(
         "request": request,
         "bookmark": bookmark,
         "category_options": list_category_options(db),
+        "all_tags": _tag_options(db),
         "duplicate": duplicate_counts(db, bookmark.normalized_url),
         "modal_mode": "edit",
     }
