@@ -1,0 +1,55 @@
+# 签栖 V1：fnOS 独立实例
+# 纯内网 HTTP；仅发布到 fnOS 固定内网 IPv4，不使用反向代理。
+name: bookmark-fnos
+
+services:
+  app:
+    build:
+      context: ../source
+      dockerfile: Dockerfile
+    image: bookmark-manager-v1-fnos:${IMAGE_TAG:-1.0.0}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite:////data/bookmarks.db
+      IMPORT_TMP_DIR: /data/import_tmp
+    command:
+      [
+        "python",
+        "-m",
+        "uvicorn",
+        "app.main:create_app",
+        "--factory",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--workers",
+        "1",
+        "--no-proxy-headers",
+      ]
+    volumes:
+      - ${DATA_DIR:?DATA_DIR 必须是 fnOS 存储池中的绝对路径}:/data:rw
+      - ${BACKUP_DIR:?BACKUP_DIR 必须是 fnOS 存储池中的绝对路径}:/data/backups:rw
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    ports:
+      - "${BIND_IP:?BIND_IP 必须是 fnOS 固定内网 IPv4}:${HTTP_PORT:-18000}:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=5)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

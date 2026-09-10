@@ -209,9 +209,7 @@ class TestCsrf:
         """登录表单令牌失效时，403 页面应换发令牌并允许直接重试。"""
         make_admin(password=PASSWORD)
         stale = "stale-token-from-old-instance"
-        client.cookies.set(
-            "bookmark_csrf", stale, domain="testserver.local", path="/"
-        )
+        client.cookies.set("bookmark_csrf", stale, domain="testserver.local", path="/")
 
         response = client.post(
             "/auth/login",
@@ -396,6 +394,30 @@ class TestProductionSurface:
             assert test_client.get("/").status_code == 303  # 未登录跳转
             response = test_client.get("/login")
             assert response.headers.get("strict-transport-security", "") != ""
+
+    def test_lan_http_disables_docs_without_hsts(self, make_settings, db):
+        from app.main import create_app
+        from fastapi.testclient import TestClient
+
+        settings = make_settings(
+            {
+                "APP_ENV": "lan",
+                "SESSION_SECRET": "l" * 40 + "n",
+                "SESSION_COOKIE_SECURE": "false",
+                "DATABASE_URL": str(db.url),
+            }
+        )
+        app = create_app(settings)
+        with TestClient(app, base_url="http://fnos.lan") as test_client:
+            response = test_client.get("/login")
+            assert response.status_code == 200
+            assert response.headers.get("strict-transport-security") is None
+            csrf_cookie = response.cookies.get(settings.csrf_cookie_name)
+            assert csrf_cookie
+            assert "Secure" not in response.headers.get("set-cookie", "")
+            assert test_client.get("/docs").status_code == 404
+            assert test_client.get("/redoc").status_code == 404
+            assert test_client.get("/openapi.json").status_code == 404
 
 
 class TestUploadLimit:

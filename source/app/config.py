@@ -1,7 +1,8 @@
 """应用配置（BM-V1-003）。
 
 分层规则：内置默认值 -> `.env` 文件（仅 development 便利）-> 环境变量 -> 注入覆盖（测试）。
-- 生产环境缺少强随机 SESSION_SECRET 时拒绝启动；
+- lan/production 缺少强随机 SESSION_SECRET 时拒绝启动；
+- lan 用于可信内网 HTTP，关闭文档接口且允许非 Secure Cookie；
 - 非法布尔值、大小限制、URL 与密钥值给出启动错误；
 - DEFAULT_WEB_SEARCH_ENGINE 只接受 google/bing/baidu；
 - 敏感字段（session_secret）的字符串表示一律脱敏（repr=False + 日志从不输出）。
@@ -28,7 +29,7 @@ except ImportError:  # pragma: no cover
 
 APP_ROOT = Path(__file__).resolve().parent.parent
 
-VALID_ENVS = ("development", "testing", "production")
+VALID_ENVS = ("development", "testing", "lan", "production")
 VALID_SEARCH_ENGINES = ("google", "bing", "baidu")
 _TRUE = {"1", "true", "yes", "on"}
 _FALSE = {"0", "false", "no", "off"}
@@ -111,7 +112,7 @@ class Settings:
     site_domain: str = ""
     timezone: str = "UTC"
     log_level: str = "INFO"
-    log_format: str = "text"  # text | json；production 默认 json
+    log_format: str = "text"  # text | json；lan/production 默认 json
     # 网络搜索首页（只影响首次高亮引擎）
     default_web_search_engine: str = "google"
     # favicon：V1 默认不显示第三方图标；显式开启才允许展示已导入的 HTTP(S) favicon URL
@@ -128,7 +129,7 @@ class Settings:
     max_description_length: int = 2000
     max_tag_length: int = 50
     max_category_name_length: int = 100
-    # 开放接口（仅非 production 时可能开启）
+    # 开放接口（仅 development/testing 可能开启）
     allow_docs: bool = False
 
     @classmethod
@@ -183,11 +184,11 @@ class Settings:
                 "SESSION_SECRET must be at least 32 characters and not all the same character"
             )
         if (
-            app_env == "production"
+            app_env in ("lan", "production")
             and require_session_secret
             and (secret is None or not cls._is_strong_secret(secret))
         ):
-            raise ConfigError("SESSION_SECRET is required in production (random, >= 32 chars)")
+            raise ConfigError("SESSION_SECRET is required in lan/production (random, >= 32 chars)")
         if secret is None:
             secret = secrets.token_hex(32)  # development/testing 自动生成，每次启动变化
             if app_env == "development":
@@ -217,7 +218,7 @@ class Settings:
         except ZoneInfoNotFoundError:
             raise ConfigError(f"Invalid TIMEZONE: {timezone!r}") from None
 
-        log_format = get("LOG_FORMAT") or ("json" if app_env == "production" else "text")
+        log_format = get("LOG_FORMAT") or ("json" if app_env in ("lan", "production") else "text")
         if log_format not in ("text", "json"):
             raise ConfigError(f"Invalid LOG_FORMAT: {log_format!r}")
 
@@ -238,10 +239,11 @@ class Settings:
             raise ConfigError("Upload/import/session limits must be positive integers")
 
         trusted = get("TRUSTED_PROXIES", "")
-        allow_docs = app_env != "production" and _parse_bool(
-            "ALLOW_DOCS", get("ALLOW_DOCS", "false" if app_env == "production" else "true")
+        hardened_env = app_env in ("lan", "production")
+        allow_docs = not hardened_env and _parse_bool(
+            "ALLOW_DOCS", get("ALLOW_DOCS", "false" if hardened_env else "true")
         )
-        if app_env == "production":
+        if hardened_env:
             allow_docs = False
 
         settings = cls(

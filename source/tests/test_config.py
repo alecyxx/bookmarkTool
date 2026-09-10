@@ -79,6 +79,23 @@ def test_production_secure_cookie_required(make_settings):
     assert settings.allow_docs is False  # 生产强制关闭文档
 
 
+def test_lan_http_requires_strong_secret_and_disables_docs(make_settings):
+    with pytest.raises(ConfigError):
+        make_settings({"APP_ENV": "lan", "SESSION_SECRET": ""})
+    settings = make_settings(
+        {
+            "APP_ENV": "lan",
+            "SESSION_SECRET": "s" * 40 + "x",
+            "SESSION_COOKIE_SECURE": "false",
+            "ALLOW_DOCS": "true",
+        }
+    )
+    assert settings.app_env == "lan"
+    assert settings.session_cookie_secure is False
+    assert settings.allow_docs is False
+    assert settings.log_format == "json"
+
+
 def test_development_generates_ephemeral_secret(make_settings):
     settings = make_settings({"APP_ENV": "development", "SESSION_SECRET": ""})
     assert settings.session_secret is not None and len(settings.session_secret) >= 32

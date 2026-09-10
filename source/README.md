@@ -45,7 +45,8 @@ uvicorn app.main:create_app --factory --reload --port 8000
 注意：
 
 - 应用启动与运行**不会**自动建库或执行迁移（阶段 02 后通过 `alembic upgrade head` 显式执行）；
-- `APP_ENV=production` 时缺少强随机 `SESSION_SECRET` 将拒绝启动；
+- `APP_ENV=lan|production` 时缺少强随机 `SESSION_SECRET` 将拒绝启动；
+- `lan` 仅用于可信内网 HTTP：关闭文档接口但允许非 Secure Cookie；
 - 开发环境未设置 `SESSION_SECRET` 时自动生成临时密钥（每次启动变化）。
 
 ## 质量门禁（本地与 CI 共用一条命令）
@@ -63,10 +64,10 @@ python -m scripts.quality
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `APP_ENV` | `development` | `development` / `testing` / `production` |
+| `APP_ENV` | `development` | `development` / `testing` / `lan` / `production` |
 | `DATABASE_URL` | `sqlite:///dev_data/bookmarks.db` | V1 只接受 SQLite |
-| `SESSION_SECRET` | development 自动生成 | 生产必填且 ≥32 字符强随机 |
-| `SESSION_COOKIE_SECURE` | 跟随 `APP_ENV` | 生产必须为 true |
+| `SESSION_SECRET` | development 自动生成 | lan/production 必填且 ≥32 字符强随机 |
+| `SESSION_COOKIE_SECURE` | 跟随 `APP_ENV` | lan 为 false；production 必须为 true |
 | `DEFAULT_WEB_SEARCH_ENGINE` | `google` | 仅 `google` / `bing` / `baidu` |
 | `ENABLE_REMOTE_FAVICONS` | `false` | 默认不显示第三方 favicon |
 | `TRUSTED_PROXIES` | 空 | 逗号分隔 CIDR |

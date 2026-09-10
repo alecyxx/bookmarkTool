@@ -3,7 +3,7 @@
 约定：
 - 导入本模块（甚至调用 create_app）不会自动建库、迁移或访问网络；
 - 数据库只通过 Alembic 迁移创建（BM-V1-102），应用启动不调用 create_all()；
-- 生产环境关闭 /docs、/redoc 与 OpenAPI JSON（BM-V1-206 强化）。
+- lan/production 关闭 /docs、/redoc 与 OpenAPI JSON（BM-V1-206 强化）。
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             pass
         yield
 
-    docs_enabled = settings.app_env != "production" and settings.allow_docs
+    docs_enabled = settings.app_env not in ("lan", "production") and settings.allow_docs
     app = FastAPI(
         title="签栖",
         version="0.1.0",
