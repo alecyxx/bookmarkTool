@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1
+# 仅用于构建 VPS 单文件；VPS 本身不需要 Docker 或 Python。
+FROM python:3.14.3-slim-bookworm AS builder
+
+ARG TARGETARCH
+ARG PEX_VERSION=2.101.4
+
+WORKDIR /build
+RUN python -m pip install --no-cache-dir "pex==${PEX_VERSION}"
+
+COPY requirements.txt ./requirements.txt
+COPY alembic.ini ./alembic.ini
+COPY app ./app
+COPY scripts ./scripts
+COPY migrations ./migrations
+
+RUN set -eu; \
+    artifact="/out/qianqi-linux-${TARGETARCH}"; \
+    mkdir -p /out; \
+    pex \
+      --requirement requirements.txt \
+      --sources-directory /build \
+      --entry-point app.cli:main \
+      --interpreter-constraint 'CPython==3.14.*' \
+      --venv \
+      --scie eager \
+      --output-file "${artifact}"; \
+    chmod 755 "${artifact}"; \
+    "${artifact}" self-check; \
+    "${artifact}" version; \
+    sha256sum "${artifact}" | sed 's#  /out/#  #' > "${artifact}.sha256"
+
+FROM scratch AS export
+COPY --from=builder /out/ /

@@ -1,0 +1,9 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOME=/var/lib/bookmark
+QIANQI_ENV_FILE=/etc/bookmark/bookmark.env
+
+30 2 * * * bookmark /opt/bookmark/qianqi backup --type daily --dir /var/backups/bookmark >> /var/backups/bookmark/cron.log 2>&1
+35 2 * * 0 bookmark /opt/bookmark/qianqi backup --type weekly --dir /var/backups/bookmark >> /var/backups/bookmark/cron.log 2>&1
+40 2 1 * * bookmark /opt/bookmark/qianqi backup --type monthly --dir /var/backups/bookmark >> /var/backups/bookmark/cron.log 2>&1
+0 3 * * * bookmark /opt/bookmark/qianqi cleanup >> /var/backups/bookmark/cron.log 2>&1

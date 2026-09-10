@@ -7,9 +7,11 @@ Wants=network-online.target
 Type=simple
 User=bookmark
 Group=bookmark
-WorkingDirectory=/opt/bookmark/source
+WorkingDirectory=/var/lib/bookmark
 EnvironmentFile=/etc/bookmark/bookmark.env
-ExecStart=/opt/bookmark/venv/bin/python -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips 127.0.0.1
+Environment=HOME=/var/lib/bookmark
+Environment=PEX_ROOT=/var/lib/bookmark/.pex
+ExecStart=/opt/bookmark/qianqi serve
 Restart=on-failure
 RestartSec=3
 TimeoutStopSec=30
