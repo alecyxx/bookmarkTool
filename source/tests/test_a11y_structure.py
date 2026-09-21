@@ -3,7 +3,7 @@
 覆盖：html lang、viewport、skip-link、单一 h1、label/for 关联、按钮可访问名、
 无正 tabindex、live region、favicon 隐私（远程关闭不发第三方图片请求）、
 错误信息持久语义（role=alert 页面元素）。
-三浏览器人工回归差异记录于交付记录（本环境无浏览器自动化）。
+三浏览器人工回归需要在实际发布环境执行（本环境无浏览器自动化）。
 """
 
 from __future__ import annotations

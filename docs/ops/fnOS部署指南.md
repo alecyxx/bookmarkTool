@@ -62,7 +62,7 @@ LOG_FORMAT=json
 TIMEZONE=Asia/Shanghai
 IMAGE_TAG=1.0.0
 
-BIND_IP=192.168.1.20
+BIND_IP=<fnOS-LAN-IP>
 HTTP_PORT=18000
 DATA_DIR=/实际存储池路径/bookmarkTool-data
 BACKUP_DIR=/实际存储池路径/bookmarkTool-backups

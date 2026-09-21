@@ -329,7 +329,7 @@ class TestAdminTool:
 
 
 class TestDeployArtifacts:
-    """801/802/806 交付物静态检查（镜像构建/漏洞扫描需真实环境，见交付记录已知限制）。"""
+    """801/802/806 发布物静态检查（镜像构建与漏洞扫描需在真实环境执行）。"""
 
     def test_dockerfile(self):
         dockerfile = (PROJECT / "Dockerfile").read_text(encoding="utf-8")

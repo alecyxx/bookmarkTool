@@ -9,7 +9,7 @@
 在任意装有 Docker Buildx 的机器执行；Docker 只用于构建，不装到 VPS：
 
 ```powershell
-Set-Location D:\bookmarkTool
+Set-Location <repo-root>
 docker buildx build --platform linux/amd64 `
   --file deploy/Dockerfile.vps-binary `
   --output type=local,dest=dist source

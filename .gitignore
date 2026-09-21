@@ -36,3 +36,14 @@ build/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# --- 私有开发资料 / 审查记录（不得进入公开仓库） ---
+.codex/
+.impeccable/
+/docs/tasks/
+/docs/个人书签管理系统 V1 开发设计文档.md
+/docs/ops/GO-NOGO评审.md
+分析报告-*.md
+
+# --- 测试临时目录 ---
+source/.pytest_tmp/
