@@ -433,3 +433,22 @@ class TestUploadLimit:
                 files={"file": ("big.bin", b"x" * 2048, "text/plain")},
             )
             assert response.status_code == 413
+            request_id = response.headers.get("x-request-id")
+            assert request_id
+            assert response.headers.get("x-content-type-options") == "nosniff"
+            assert response.json()["error"]["request_id"] == request_id
+
+    def test_csrf_rejection_has_request_context(self, client, make_admin, caplog):
+        logged_in_client(client, make_admin)
+        with caplog.at_level("INFO", logger="app.access"):
+            response = client.post(
+                "/api/bookmarks",
+                json={"title": "blocked", "url": "https://blocked.example"},
+                headers={"X-CSRF-Token": "invalid-token"},
+            )
+        assert response.status_code == 403
+        request_id = response.headers.get("x-request-id")
+        assert request_id
+        assert response.headers.get("content-security-policy")
+        assert response.json()["error"]["request_id"] == request_id
+        assert any("request_completed" in record.getMessage() and "status=403" in record.getMessage() for record in caplog.records)

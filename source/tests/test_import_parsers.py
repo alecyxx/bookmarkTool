@@ -154,6 +154,13 @@ class TestCsv:
         assert not result.errors, result.errors
         assert result.items[0].folder_path == ("资料", "AI/ML", "Deep")
 
+    def test_overlong_category_skips_the_whole_row(self):
+        long_name = "x" * 101
+        content = f"title,url,category\nkept,https://kept.example,{long_name}\n"
+        result = parse_csv(self._csv(content))
+        assert any("分类名超过" in error for error in result.errors)
+        assert result.items == []
+
     def test_formula_prefix_stripped_only_with_marker(self):
         with_marker = (
             "title,url,description,export_format_version\n"

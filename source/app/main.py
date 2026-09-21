@@ -85,8 +85,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     # 中间件与异常处理
-    app.add_middleware(RequestContextMiddleware)
     make_security_middleware(app, settings, session_service, csrf_service)
+    # 最后添加、最外层执行：为安全中间件提前返回的响应补 request_id/访问日志。
+    app.add_middleware(RequestContextMiddleware)
     register_exception_handlers(app)
 
     # 页面路由

@@ -63,7 +63,10 @@ def read_db_revision(db_file: Path) -> str | None:
 
 
 def _probe_engine(database_url: str) -> Engine:
-    return create_engine(database_url, connect_args={"timeout": 5})
+    # 与 read_db_revision 使用同一套 APP_ROOT/绝对路径解析，避免相对 URL
+    # 出现“读的是一个库、写探针的是另一个库”。
+    db_file = database_file_path(database_url)
+    return create_engine(f"sqlite:///{db_file}", connect_args={"timeout": 5})
 
 
 def is_db_writable(engine: Engine) -> bool:
@@ -147,6 +150,10 @@ def create_backup(
     if backup_type not in ("daily", "weekly", "monthly"):
         raise ValueError(f"unknown backup type: {backup_type}")
     source = database_file_path(database_url)
+    if not source.is_file():
+        raise RuntimeError(f"database file does not exist: {source}")
+    if read_db_revision(source) is None:
+        raise RuntimeError("database schema is not initialized")
     backup_dir.mkdir(parents=True, exist_ok=True)
     tmp_dir = backup_dir / ".tmp"
     tmp_dir.mkdir(exist_ok=True)

@@ -50,6 +50,11 @@
       {% if state.tag %}<input type="hidden" name="tag" value="{{ state.tag }}">{% endif %}
       {% if state.q %}<input type="hidden" name="q" value="{{ state.q }}">{% endif %}
       {% if state.favorite %}<input type="hidden" name="favorite" value="1">{% endif %}
+      {% if state.page_size >= page_size_all %}
+      <input type="hidden" name="page_size" value="all">
+      {% elif state.page_size != 50 %}
+      <input type="hidden" name="page_size" value="{{ state.page_size }}">
+      {% endif %}
     </form>
 
     <button class="btn btn-primary" type="button" data-bm-new data-shortcut-new>+ 新增</button>

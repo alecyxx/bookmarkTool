@@ -164,7 +164,9 @@ class UploadSizeMiddleware(BaseHTTPMiddleware):
 
     async def _reject(self, request: Request) -> Response:
         exc = payload_too_large("上传文件超过大小限制（默认 10 MiB）。")
-        payload = _error_payload(exc.code, exc.message, None, None)
+        payload = _error_payload(
+            exc.code, exc.message, None, getattr(request.state, "request_id", None)
+        )
         if _wants_html(request):
             return await _render_error_page(request, 413, payload)
         from fastapi.responses import JSONResponse
@@ -178,12 +180,12 @@ def make_security_middleware(
     session_service: SessionService,
     csrf_service: CsrfService,
 ) -> None:
-    """挂载安全中间件（后添加者先执行：CSRF -> SecurityHeaders -> UploadSize）。"""
+    """挂载安全中间件；SecurityHeaders 位于 UploadSize 外层，覆盖提前返回。"""
     app.add_middleware(
         CsrfMiddleware,
         settings=settings,
         session_service=session_service,
         csrf_service=csrf_service,
     )
-    app.add_middleware(SecurityHeadersMiddleware, settings=settings)
     app.add_middleware(UploadSizeMiddleware, settings=settings)
+    app.add_middleware(SecurityHeadersMiddleware, settings=settings)

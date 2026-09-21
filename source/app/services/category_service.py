@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
+from app.database import now_utc
 from app.errors import conflict, not_found, validation_error
 from app.models.bookmark import Bookmark
 from app.models.category import Category
@@ -391,7 +392,11 @@ class CategoryService:
         self.session.execute(
             update(Bookmark)
             .where(Bookmark.category_id == category_id)
-            .values(category_id=move_bookmarks_to_category_id)
+            .values(
+                category_id=move_bookmarks_to_category_id,
+                version=Bookmark.version + 1,
+                updated_at=now_utc(),
+            )
         )
 
         # 3) 直接子分类提升到当前父级；防御性检查同级重名与深度

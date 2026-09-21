@@ -1,5 +1,6 @@
 {# 回收站单条（含重复提示与行内操作）。 #}
-<article class="bookmark-item trash-item" id="trash-item-{{ bookmark.id }}" data-bookmark-id="{{ bookmark.id }}">
+<article class="bookmark-item trash-item" id="trash-item-{{ bookmark.id }}"
+         data-bookmark-id="{{ bookmark.id }}" data-version="{{ bookmark.version }}">
   <label class="bm-check" aria-label="选择 {{ bookmark.title }}">
     <input type="checkbox" class="bm-select" value="{{ bookmark.id }}">
   </label>

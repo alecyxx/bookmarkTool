@@ -208,6 +208,38 @@ class TestExecute:
         assert updated.title == "A"  # 标题被覆盖
         assert db_session.query(Bookmark).count() == 3
 
+    def test_execute_overwrite_uses_fallback_title(self, auth_client, db_session):
+        db_session.add(
+            Bookmark(
+                title="旧标题",
+                url="https://example.com/empty-title",
+                normalized_url="https://example.com/empty-title",
+            )
+        )
+        db_session.commit()
+        response = _upload(
+            auth_client,
+            b"title,url\n,https://example.com/empty-title\n",
+            "empty-title.csv",
+            folder_policy="ignore",
+        )
+        job_id = _job_id_from_html(response.text)
+        headers = _headers(auth_client)
+        options = auth_client.put(
+            f"/api/imports/{job_id}/options",
+            json={"duplicate_policy": "overwrite", "folder_policy": "ignore"},
+            headers=headers,
+        )
+        assert options.status_code == 200
+        execute = auth_client.post(f"/api/imports/{job_id}/execute", headers=headers)
+        assert execute.status_code == 200, execute.text
+        updated = (
+            db_session.query(Bookmark)
+            .filter_by(normalized_url="https://example.com/empty-title")
+            .one()
+        )
+        assert updated.title == "example.com"
+
     def test_execute_overwrite_ambiguous_rejected(self, auth_client, db_session):
         from app.models.bookmark import Bookmark
 
@@ -416,3 +448,25 @@ class TestExport:
         response = auth_client.get("/api/export/csv", headers=_headers(auth_client))
         assert response.status_code == 200
         assert "gone" not in response.text
+
+    def test_csv_export_rejects_category_cycle(self, db_session):
+        from app.services import export_service
+        from sqlalchemy import text
+
+        first = Category(name="A", normalized_name="a")
+        second = Category(name="B", normalized_name="b")
+        db_session.add_all([first, second])
+        db_session.commit()
+        db_session.execute(
+            text("UPDATE categories SET parent_id = :parent WHERE id = :id"),
+            {"parent": second.id, "id": first.id},
+        )
+        db_session.execute(
+            text("UPDATE categories SET parent_id = :parent WHERE id = :id"),
+            {"parent": first.id, "id": second.id},
+        )
+        db_session.commit()
+        db_session.expire_all()
+
+        with pytest.raises(ValueError, match="category tree contains a cycle"):
+            export_service.to_csv_bytes(db_session)

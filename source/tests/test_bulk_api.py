@@ -308,9 +308,10 @@ class TestTrashLifecycle:
         assert "共 1 条" in page.text
 
     def test_trash_item_actions_render(self, auth_client, db_session):
-        self._trash_one(auth_client, db_session)
+        bookmark_id, _ = self._trash_one(auth_client, db_session)
         page = auth_client.get("/trash", headers={"Accept": "text/html"})
         assert "data-trash-restore" in page.text
         assert "data-trash-permanent" in page.text
+        assert f'data-bookmark-id="{bookmark_id}" data-version="' in page.text
         assert "选择当前页全部" in page.text
         assert "data-bulk-action" in page.text

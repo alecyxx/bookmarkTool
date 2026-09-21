@@ -201,6 +201,14 @@ class TestCategoryFilterUi:
         sort_form = self._sort_form(response.text)
         assert f'name="tag" value="{tag.id}"' in sort_form
 
+    def test_sort_form_keeps_page_size(self, auth_client):
+        response = auth_client.get(
+            "/bookmarks?page_size=64", headers={"Accept": "text/html"}
+        )
+        assert response.status_code == 200
+        sort_form = self._sort_form(response.text)
+        assert 'name="page_size" value="64"' in sort_form
+
     def test_full_category_sidebar(self, auth_client, db_session):
         self._setup(auth_client, db_session)
         response = auth_client.get("/bookmarks", headers={"Accept": "text/html"})

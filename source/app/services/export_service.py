@@ -111,7 +111,11 @@ def to_csv_bytes(db: Session, include_trash: bool = False) -> bytes:
     for category in db.execute(select(Category)).scalars():
         path: list[str] = []
         current: Category | None = category
+        seen: set[int] = set()
         while current is not None:
+            if current.id in seen:
+                raise ValueError("category tree contains a cycle")
+            seen.add(current.id)
             path.append(current.name)
             current = db.get(Category, current.parent_id) if current.parent_id else None
         category_path[category.id] = format_category_path(tuple(reversed(path)))

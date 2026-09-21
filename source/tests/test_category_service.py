@@ -213,6 +213,11 @@ class TestDelete:
 
     def test_delete_moves_bookmarks_and_promotes_children(self, svc, db_session):
         [work, dev] = self._make_with_bookmarks(svc, db_session)
+        before_versions = dict(
+            db_session.execute(
+                select(Bookmark.id, Bookmark.version).where(Bookmark.category_id == dev)
+            ).all()
+        )
         [资料] = create_chain(svc, db_session, ["资料"])
         tree = svc.tree()
         svc.delete(dev, 资料, tree.require(dev).category.version, get_tree_revision(db_session))
@@ -221,6 +226,13 @@ class TestDelete:
             text("SELECT category_id FROM bookmarks WHERE category_id = :t"), {"t": 资料}
         ).all()
         assert len(moved) == 3  # 正常 2 + 回收站 1 全部迁移
+        db_session.expire_all()
+        moved_versions = dict(
+            db_session.execute(
+                select(Bookmark.id, Bookmark.version).where(Bookmark.category_id == 资料)
+            ).all()
+        )
+        assert moved_versions == {bookmark_id: version + 1 for bookmark_id, version in before_versions.items()}
         assert db_session.get(Category, dev) is None
         assert db_session.get(Category, work) is not None
 

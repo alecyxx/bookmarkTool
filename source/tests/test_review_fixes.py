@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
@@ -9,9 +10,12 @@ import pytest
 from app.database import now_utc
 from app.models.import_job import ImportJob
 from app.services.import_service import (
+    STATUS_FAILED,
+    STATUS_RUNNING,
     STATUS_SUCCEEDED,
     cleanup_orphan_files,
     expire_jobs,
+    mark_stale_running_as_failed,
     resolve_temp_root,
 )
 
@@ -173,7 +177,9 @@ class TestM2TempFileLifecycle:
         return job
 
     def test_expire_removes_terminal_jobs_and_files(self, auth_client, db_session, tmp_path):
-        settings = auth_client.app.state.settings
+        settings = replace(
+            auth_client.app.state.settings, import_tmp_dir=str(tmp_path / "import_tmp")
+        )
         job = self._make_terminal_job(db_session, settings, tmp_path)
         cleanup = expire_jobs(db_session, settings)
         db_session.commit()
@@ -181,8 +187,48 @@ class TestM2TempFileLifecycle:
         assert db_session.get(ImportJob, job.id) is None
         assert not resolve_temp_root(settings).joinpath(f"{job.temp_file_key}.src").exists()
 
+    def test_restart_failed_job_gets_timestamp_and_is_cleaned(
+        self, auth_client, db_session, tmp_path
+    ):
+        settings = replace(
+            auth_client.app.state.settings, import_tmp_dir=str(tmp_path / "import_tmp")
+        )
+        job = ImportJob(
+            id="stale-running-job-0001",
+            source_type="CSV",
+            original_filename="stale.csv",
+            file_sha256="x" * 64,
+            temp_file_key="stale-running-job-0001",
+            session_nonce_hash="n",
+            options_json="{}",
+            summary_json="{}",
+            category_tree_revision=1,
+            status=STATUS_RUNNING,
+            expires_at=now_utc(),
+        )
+        db_session.add(job)
+        db_session.commit()
+        root = resolve_temp_root(settings)
+        root.mkdir(parents=True, exist_ok=True)
+        (root / f"{job.temp_file_key}.src").write_bytes(b"x")
+
+        assert mark_stale_running_as_failed(db_session) == 1
+        db_session.commit()
+        db_session.expire_all()
+        stale = db_session.get(ImportJob, job.id)
+        assert stale.status == STATUS_FAILED
+        assert stale.executed_at is not None
+        stale.executed_at = now_utc() - timedelta(days=2)
+        db_session.commit()
+        cleanup = expire_jobs(db_session, settings)
+        db_session.commit()
+        assert cleanup["terminal_removed"] == 1
+        assert db_session.get(ImportJob, job.id) is None
+
     def test_orphan_files_cleaned(self, auth_client, db_session, tmp_path):
-        settings = auth_client.app.state.settings
+        settings = replace(
+            auth_client.app.state.settings, import_tmp_dir=str(tmp_path / "import_tmp")
+        )
         root = resolve_temp_root(settings)
         root.mkdir(parents=True, exist_ok=True)
         orphan = root / "no-record-orphan.src"

@@ -79,6 +79,36 @@ class TestReadyProbe:
         result = check_ready("sqlite:////nonexistent-dir/bookmarks.db")
         assert result == {"status": "not_ready", "reason": "db_missing"}
 
+    def test_ready_relative_url_probes_resolved_database(self, tmp_path, monkeypatch):
+        from app import config
+
+        app_root = tmp_path / "app-root"
+        working_dir = tmp_path / "working-dir"
+        app_root.mkdir()
+        working_dir.mkdir()
+        monkeypatch.setattr(config, "APP_ROOT", app_root)
+        monkeypatch.chdir(working_dir)
+
+        db_file = app_root / "ready.db"
+        conn = sqlite3.connect(db_file)
+        conn.execute("CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL)")
+        conn.execute(
+            "INSERT INTO alembic_version(version_num) VALUES (?)",
+            (ops.EXPECTED_DB_REVISION,),
+        )
+        conn.commit()
+        conn.close()
+
+        assert check_ready("sqlite:///ready.db") == {"status": "ok", "reason": None}
+        assert not (working_dir / "ready.db").exists()
+        conn = sqlite3.connect(db_file)
+        try:
+            assert conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='_ready_probe'"
+            ).fetchone()
+        finally:
+            conn.close()
+
     def test_ready_revision_mismatch(self, client, make_admin, db_session):
         make_admin(password=PASSWORD)
         db_file = database_file_path(client.app.state.settings.database_url)
@@ -112,6 +142,12 @@ class TestBackup:
         with pytest.raises((RuntimeError, sqlite3.Error)):
             create_backup("sqlite:////nonexistent-dir/bookmarks.db", backup_dir, "daily")
         assert not backup_dir.exists() or list(backup_dir.iterdir()) == []
+
+    def test_backup_rejects_empty_sqlite_file(self, tmp_path):
+        source = tmp_path / "empty.db"
+        sqlite3.connect(source).close()
+        with pytest.raises(RuntimeError, match="schema is not initialized"):
+            create_backup(f"sqlite:///{source}", tmp_path / "backups", "daily")
 
     def test_manifest_publish_failure_keeps_no_partial(
         self, client, make_admin, tmp_path, monkeypatch

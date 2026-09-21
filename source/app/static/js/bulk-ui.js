@@ -118,6 +118,11 @@
             }
           }
           refreshList();
+        } else if (result.status === 401 || result.status === 403) {
+          M.toast("会话已失效或校验未通过，请刷新页面后重试。", true);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+          }
         } else {
           var error = result.data.error || {};
           M.toast(error.message || "操作失败。", true);
@@ -143,11 +148,18 @@
       var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
       modal.show();
       return { element: modalEl, instance: modal };
-    });
+    })
+      .catch(function () {
+        M.toast("会话已失效或操作窗口加载失败，请刷新页面后重试。", true);
+        return null;
+      });
   }
 
   function openCategory() {
     openModal("/api/bulk/category-modal").then(function (ctx) {
+      if (!ctx) {
+        return;
+      }
       document.getElementById("bulk-submit-btn").addEventListener("click", function () {
         var value = document.getElementById("bulk-category-select").value;
         postBulk(
@@ -164,6 +176,9 @@
 
   function openTags() {
     openModal("/api/bulk/tags-modal").then(function (ctx) {
+      if (!ctx) {
+        return;
+      }
       document.getElementById("bulk-submit-btn").addEventListener("click", function () {
         var raw = document.getElementById("bulk-tags-input").value;
         var tags = raw
@@ -183,6 +198,9 @@
 
   function openConfirm(action, countValue) {
     openModal("/api/bulk/confirm-modal?action=" + action + "&count=" + countValue).then(function (ctx) {
+      if (!ctx) {
+        return;
+      }
       var modalEl = ctx.element;
       document.getElementById("bulk-submit-btn").addEventListener("click", function () {
         var word = modalEl.getAttribute("data-word");
@@ -209,6 +227,9 @@
 
   function openEmptyTrash() {
     openModal("/api/bulk/confirm-modal?action=empty&count=0").then(function (ctx) {
+      if (!ctx) {
+        return;
+      }
       var modalEl = ctx.element;
       document.getElementById("bulk-submit-btn").addEventListener("click", function () {
         var input = document.getElementById("bulk-confirm-input");
@@ -242,6 +263,9 @@
 
   function singlePermanent(id, version) {
     openModal("/api/bulk/confirm-modal?action=permanent&count=1").then(function (ctx) {
+      if (!ctx) {
+        return;
+      }
       var modalEl = ctx.element;
       document.getElementById("bulk-submit-btn").addEventListener("click", function () {
         var input = document.getElementById("bulk-confirm-input");

@@ -232,7 +232,11 @@ def mark_stale_running_as_failed(db: Session) -> int:
         db.execute(
             update(ImportJob)
             .where(ImportJob.status == STATUS_RUNNING)
-            .values(status=STATUS_FAILED, error_summary="服务重启导致任务中断，请重新上传。")
+            .values(
+                status=STATUS_FAILED,
+                executed_at=now_utc(),
+                error_summary="服务重启导致任务中断，请重新上传。",
+            )
         ).rowcount
         or 0
     )
@@ -254,8 +258,13 @@ def expire_jobs(db: Session, settings: Settings) -> dict:
     terminal = db.scalars(
         select(ImportJob).where(
             ImportJob.status.in_((STATUS_SUCCEEDED, STATUS_FAILED)),
-            ImportJob.executed_at
-            < now_utc() - timedelta(seconds=settings.import_job_expire_seconds),
+            (
+                ImportJob.executed_at.is_(None)
+                | (
+                    ImportJob.executed_at
+                    < now_utc() - timedelta(seconds=settings.import_job_expire_seconds)
+                )
+            ),
         )
     ).all()
     removed = 0
@@ -478,7 +487,7 @@ class ImportExecutor:
                     )
                 if len(active) == 1:
                     # 只更新未删除目标；回收站同键不自动复活
-                    self._overwrite(active[0]["id"], item, category_id, row_tags)
+                    self._overwrite(active[0]["id"], item, title, category_id, row_tags)
                     counts["overwritten"] += 1
                     created_in_file.add(item.normalized_url)
                     continue
@@ -508,10 +517,15 @@ class ImportExecutor:
         self.db.flush()
 
     def _overwrite(
-        self, bookmark_id: int, item, category_id: int | None, row_tags: list[str]
+        self,
+        bookmark_id: int,
+        item,
+        title: str,
+        category_id: int | None,
+        row_tags: list[str],
     ) -> None:
         bookmark = self.db.get(Bookmark, bookmark_id)
-        bookmark.title = item.title
+        bookmark.title = title
         bookmark.description = item.description
         bookmark.category_id = category_id
         bookmark.is_favorite = item.favorite

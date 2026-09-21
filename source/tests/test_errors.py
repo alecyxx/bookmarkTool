@@ -29,6 +29,10 @@ def error_client():
     async def boom():
         raise RuntimeError("secret-token-should-not-leak")
 
+    @app.get("/_needs-query", include_in_schema=False)
+    async def needs_query(value: int):
+        return {"value": value}
+
     with TestClient(app, raise_server_exceptions=False) as test_client:
         yield test_client
 
@@ -77,6 +81,22 @@ def test_405_method_not_allowed(client):
     response = client.post("/health/live", headers={"Accept": "text/html"})
     assert response.status_code == 405
     assert "请求方法不受支持" in response.text
+
+
+def test_422_html_contains_request_id(error_client):
+    response = error_client.get("/_needs-query", headers={"Accept": "text/html"})
+    assert response.status_code == 422
+    request_id = response.headers.get("x-request-id")
+    assert request_id
+    assert f"请求 ID：{request_id}" in response.text
+
+
+def test_422_json_contains_request_id(error_client):
+    response = error_client.get("/_needs-query", headers={"Accept": "application/json"})
+    assert response.status_code == 422
+    request_id = response.headers.get("x-request-id")
+    assert request_id
+    assert response.json()["error"]["request_id"] == request_id
 
 
 def test_app_error_json_shape(client):

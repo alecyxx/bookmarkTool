@@ -161,7 +161,12 @@ async def _validation_handler(request: Request, exc: RequestValidationError) -> 
         message = str(err.get("msg", "invalid value"))
         if field not in field_errors:
             field_errors[field] = message
-    payload = _error_payload(CODE_VALIDATION, "输入校验未通过。", field_errors, None)
+    payload = _error_payload(
+        CODE_VALIDATION,
+        "输入校验未通过。",
+        field_errors,
+        getattr(request.state, "request_id", None),
+    )
     if _wants_html(request):
         return await _render_error_page(request, 422, payload)
     return _json_error(422, payload)

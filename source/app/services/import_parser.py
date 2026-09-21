@@ -406,10 +406,9 @@ def parse_csv(content: bytes) -> ParseResult:
         if len(path) > MAX_TREE_DEPTH:
             result.errors.append(f"第 {line} 行：分类路径超过 {MAX_TREE_DEPTH} 层")
             continue
-        for part in path:
-            if len(part) > MAX_FOLDER_LENGTH:
-                result.errors.append(f"第 {line} 行：分类名超过 {MAX_FOLDER_LENGTH} 字符")
-                continue
+        if any(len(part) > MAX_FOLDER_LENGTH for part in path):
+            result.errors.append(f"第 {line} 行：分类名超过 {MAX_FOLDER_LENGTH} 字符")
+            continue
 
         item = ParsedItem(
             title=raw_title,

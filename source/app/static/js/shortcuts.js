@@ -51,6 +51,9 @@
       return;
     }
     if (event.key.toLowerCase() === "n") {
+      if (modalOpen()) {
+        return;
+      }
       var newTrigger = document.querySelector("[data-shortcut-new]");
       if (newTrigger) {
         event.preventDefault();

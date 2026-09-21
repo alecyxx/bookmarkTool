@@ -22,6 +22,8 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         request_id = uuid.uuid4().hex[:16]
         token = request_id_var.set(request_id)
+        # 必须在 call_next 前写入：安全中间件可能提前返回 403/413。
+        request.state.request_id = request_id
         start = time.perf_counter()
         try:
             response = await call_next(request)
@@ -39,6 +41,5 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             client_ip(request),
         )
         response.headers.setdefault("X-Request-ID", request_id)
-        request.state.request_id = request_id
         request_id_var.reset(token)
         return response
